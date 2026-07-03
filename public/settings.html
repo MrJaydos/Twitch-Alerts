@@ -45,6 +45,34 @@
         </div>
       </section>
 
+      <section class="card">
+        <h2>Follow alerts (optional)</h2>
+        <p class="hint">
+          Follows aren't in chat, so they need a one-time Twitch login. Create an
+          app at <a href="https://dev.twitch.tv/console/apps" target="_blank" rel="noopener">dev.twitch.tv/console</a>
+          (OAuth Redirect URL below), paste its Client ID &amp; Secret, then connect
+          your channel account. Everything else works without this.
+        </p>
+        <div class="row">
+          <input id="redirect-uri" type="text" readonly />
+          <button id="copy-redirect" class="ghost">Copy redirect URL</button>
+        </div>
+        <div class="grid" style="margin-top:14px">
+          <label>Client ID<input type="text" id="tw-client-id" autocomplete="off" /></label>
+          <label>Client Secret<input type="text" id="tw-client-secret" placeholder="leave blank to keep existing" autocomplete="off" /></label>
+          <label class="wide">Public URL (only if behind a proxy, e.g. Coolify)
+            <input type="text" id="tw-public-url" placeholder="https://alerts.example.com" autocomplete="off" />
+          </label>
+        </div>
+        <div class="row" style="margin-top:14px; justify-content:space-between">
+          <span id="follow-status" class="hint">not connected</span>
+          <span>
+            <button id="follow-connect" class="primary" type="button">Connect Twitch account</button>
+            <button id="follow-disconnect" class="ghost" type="button" style="display:none">Disconnect</button>
+          </span>
+        </div>
+      </section>
+
       <section id="alerts"></section>
 
       <div class="save-bar">

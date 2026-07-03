@@ -54,6 +54,11 @@ function renderAlertCards() {
 function collectFromDom() {
   config.channel = el("#channel").value.trim();
   config.treatGiftedAsSub = el("#treatGiftedAsSub").checked;
+  config.twitch = config.twitch || {};
+  config.twitch.clientId = el("#tw-client-id").value.trim();
+  config.twitch.publicUrl = el("#tw-public-url").value.trim();
+  const secret = el("#tw-client-secret").value.trim();
+  if (secret) config.twitch.clientSecret = secret;
   for (const card of document.querySelectorAll(".alert-card")) {
     const key = card.dataset.key;
     const a = config.alerts[key];
@@ -98,24 +103,73 @@ async function testAlert(type) {
 }
 
 async function refreshStatus() {
+  const node = el("#status");
   try {
     const s = await api("/api/status");
-    const node = el("#status");
-    if (!s.channel) {
+    const chat = s.chat || {};
+    if (!chat.channel) {
       node.textContent = "no channel set";
       node.className = "status";
-    } else if (s.status === "connected") {
-      node.textContent = `connected to #${s.channel}`;
+    } else if (chat.status === "connected") {
+      node.textContent = `connected to #${chat.channel}`;
       node.className = "status connected";
     } else {
-      node.textContent = `${s.status}…`;
+      node.textContent = `${chat.status}…`;
       node.className = "status";
     }
+
+    // Redirect URL for the Twitch app (built from how you're reaching this page).
+    if (s.redirectUri) el("#redirect-uri").value = s.redirectUri;
+
+    // Follow / EventSub connection status.
+    const f = s.follows || {};
+    const fNode = el("#follow-status");
+    const connectBtn = el("#follow-connect");
+    const disconnectBtn = el("#follow-disconnect");
+    if (f.status === "connected") {
+      fNode.textContent = f.detail || `follow alerts active (${f.userLogin})`;
+      fNode.style.color = "var(--accent-2)";
+      connectBtn.textContent = "Reconnect";
+      disconnectBtn.style.display = "";
+    } else if (f.status === "error") {
+      fNode.textContent = "⚠ " + (f.detail || "error");
+      fNode.style.color = "#ff5c5c";
+      connectBtn.textContent = "Reconnect Twitch account";
+      disconnectBtn.style.display = f.userLogin ? "" : "none";
+    } else if (f.status === "connecting") {
+      fNode.textContent = "connecting…";
+      fNode.style.color = "var(--muted)";
+    } else {
+      fNode.textContent = "not connected";
+      fNode.style.color = "var(--muted)";
+      connectBtn.textContent = "Connect Twitch account";
+      disconnectBtn.style.display = "none";
+    }
   } catch {
-    const node = el("#status");
     node.textContent = "server offline";
     node.className = "status error";
   }
+}
+
+// Save the Twitch app credentials, then hand off to the OAuth flow.
+async function connectFollows() {
+  collectFromDom();
+  const hasSecret = el("#tw-client-secret").value.trim() || config.twitch.hasSecret;
+  if (!config.twitch.clientId || !hasSecret) {
+    alert("Enter your Twitch Client ID and Client Secret first.");
+    return;
+  }
+  await api("/api/config", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(config)
+  });
+  window.location.href = "/auth/twitch";
+}
+
+async function disconnectFollows() {
+  await api("/auth/disconnect", { method: "POST" });
+  refreshStatus();
 }
 
 async function init() {
@@ -129,6 +183,30 @@ async function init() {
     setTimeout(() => (el("#copy-url").textContent = "Copy"), 1500);
   });
   el("#save").addEventListener("click", save);
+
+  // Twitch / follow-alert connection
+  const tw = config.twitch || {};
+  el("#tw-client-id").value = tw.clientId || "";
+  el("#tw-public-url").value = tw.publicUrl || "";
+  if (tw.hasSecret) el("#tw-client-secret").placeholder = "•••••• (saved — leave blank to keep)";
+  el("#follow-connect").addEventListener("click", connectFollows);
+  el("#follow-disconnect").addEventListener("click", disconnectFollows);
+  el("#copy-redirect").addEventListener("click", () => {
+    navigator.clipboard.writeText(el("#redirect-uri").value);
+    el("#copy-redirect").textContent = "Copied!";
+    setTimeout(() => (el("#copy-redirect").textContent = "Copy redirect URL"), 1500);
+  });
+
+  // Banner after returning from the OAuth flow.
+  const q = new URLSearchParams(location.search);
+  if (q.get("follow") === "connected") {
+    el("#save-msg").textContent = "Twitch connected — follow alerts active ✓";
+  } else if (q.get("follow") === "error") {
+    el("#save-msg").textContent = "Twitch connect failed: " + (q.get("msg") || "unknown error");
+    el("#save-msg").style.color = "#ff5c5c";
+  }
+  if (q.get("follow")) history.replaceState(null, "", location.pathname);
+
   renderAlertCards();
   refreshStatus();
   setInterval(refreshStatus, 5000);

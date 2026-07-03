@@ -16,11 +16,19 @@ const CONFIG_PATH = process.env.CONFIG_PATH || join(__dirname, "..", "config.jso
  */
 export const DEFAULT_CONFIG = {
   channel: "",
-  // Anonymous chat read needs no token. A token is only required if you want
-  // real follow alerts (delivered over EventSub, not chat).
+  // Anonymous chat read needs no token. Credentials/tokens here are only used
+  // for follow alerts (delivered over EventSub, not chat). They're written by
+  // the OAuth flow and refreshed automatically; config.json is git-ignored.
   twitch: {
-    eventsubToken: "",
-    clientId: ""
+    clientId: "",
+    clientSecret: "",
+    accessToken: "",
+    refreshToken: "",
+    userId: "",
+    userLogin: "",
+    // Optional. Set when running behind a proxy (e.g. Coolify) so the OAuth
+    // redirect URI matches what you registered, e.g. https://alerts.example.com
+    publicUrl: ""
   },
   // When true, gifted-sub alerts use the `sub` alert styling.
   treatGiftedAsSub: true,

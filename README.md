@@ -106,11 +106,30 @@ full shape.
 
 ## Follow alerts
 
-Twitch no longer delivers follow events over chat/IRC — they require
+Subs, resubs, gifts, cheers and raids need no login. **Follows** are the one
+exception: Twitch no longer delivers them over chat, so they require
 [EventSub](https://dev.twitch.tv/docs/eventsub/) with an authenticated token.
-The Follow alert type, its styling, and its Test button are fully wired, so
-follow alerts render the moment an EventSub feed is connected. Anonymous chat
-covers everything else out of the box.
+This is a one-time setup on the settings page:
+
+1. Go to the [Twitch developer console](https://dev.twitch.tv/console/apps) and
+   **Register Your Application**.
+   - **OAuth Redirect URL:** copy it from the *Follow alerts* card on the
+     settings page (the "Copy redirect URL" button). Locally this is
+     `http://localhost:3000/auth/callback`; on Coolify use your public URL.
+   - **Category:** Broadcasting Suite (any is fine).
+2. Copy the app's **Client ID** and generate a **Client Secret**, paste both
+   into the *Follow alerts* card, and click **Connect Twitch account**.
+3. Authorize with the account you stream from (the `moderator:read:followers`
+   scope is requested). You'll be redirected back and the status turns green.
+
+Under the hood the app opens a Twitch EventSub WebSocket, subscribes to
+`channel.follow` (v2), and refreshes the access token automatically. If you run
+behind a reverse proxy (Coolify), set **Public URL** in that card (or the
+`PUBLIC_URL`/`publicUrl` config value) so the OAuth redirect matches what you
+registered.
+
+Tokens are stored only in `config.json` (git-ignored) and are never sent back
+to the browser.
 
 ## How it works
 

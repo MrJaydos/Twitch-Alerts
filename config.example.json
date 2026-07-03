@@ -1,8 +1,13 @@
 {
   "channel": "your_channel_name",
   "twitch": {
-    "eventsubToken": "",
-    "clientId": ""
+    "clientId": "",
+    "clientSecret": "",
+    "accessToken": "",
+    "refreshToken": "",
+    "userId": "",
+    "userLogin": "",
+    "publicUrl": ""
   },
   "treatGiftedAsSub": true,
   "alerts": {
