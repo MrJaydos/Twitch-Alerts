@@ -1,0 +1,101 @@
+/* The overlay is transparent so it composites cleanly over your scene in OBS. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+#stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 6vh;
+}
+
+.alert {
+  --accent: #9147ff;
+  --text: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  min-width: 420px;
+  max-width: 80vw;
+  padding: 22px 34px;
+  border-radius: 18px;
+  background: rgba(20, 18, 31, 0.82);
+  backdrop-filter: blur(6px);
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 18px 50px rgba(0, 0, 0, 0.55),
+    0 0 40px -6px var(--accent);
+  color: var(--text);
+  opacity: 0;
+  transform: translateY(-24px) scale(0.96);
+  pointer-events: none;
+}
+
+.alert.show {
+  animation: alert-in 0.55s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+.alert.hide {
+  animation: alert-out 0.45s ease-in forwards;
+}
+
+@keyframes alert-in {
+  from { opacity: 0; transform: translateY(-40px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes alert-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(-18px) scale(0.96); }
+}
+
+.alert-image-wrap {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 96px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.alert.has-image .alert-image-wrap { display: flex; }
+#alert-image {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 12px;
+  animation: pop 0.6s ease;
+}
+@keyframes pop {
+  0% { transform: scale(0.4); }
+  70% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.alert-body { min-width: 0; }
+
+.alert-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  filter: brightness(1.5);
+  margin-bottom: 6px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+}
+
+.alert-message {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+.alert-message .hl {
+  color: var(--accent);
+  filter: brightness(1.6);
+}

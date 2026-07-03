@@ -1,0 +1,19 @@
+{
+  "name": "twitch-alerts",
+  "version": "1.0.0",
+  "description": "Twitch stream alerts overlay (Sub, Resub, Gifted Sub, Cheer, Raid, Follow) for OBS. A modern recreation of the alerts portion of LachhhTools.",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  },
+  "license": "MIT"
+}

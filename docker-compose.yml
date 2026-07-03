@@ -1,0 +1,16 @@
+services:
+  twitch-alerts:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      # Optional: set your channel here instead of the settings page.
+      # TWITCH_CHANNEL: your_channel
+      PORT: 3000
+      CONFIG_PATH: /data/config.json
+    volumes:
+      - alerts-data:/data
+    restart: unless-stopped
+
+volumes:
+  alerts-data:

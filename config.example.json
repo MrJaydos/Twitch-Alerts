@@ -1,0 +1,87 @@
+{
+  "channel": "your_channel_name",
+  "twitch": {
+    "eventsubToken": "",
+    "clientId": ""
+  },
+  "treatGiftedAsSub": true,
+  "alerts": {
+    "follow": {
+      "enabled": true,
+      "duration": 6000,
+      "title": "New Follower",
+      "message": "{name} just followed!",
+      "accentColor": "#9147ff",
+      "textColor": "#ffffff",
+      "image": "",
+      "sound": "",
+      "soundVolume": 0.6
+    },
+    "sub": {
+      "enabled": true,
+      "duration": 7000,
+      "title": "New Subscriber",
+      "message": "{name} subscribed at Tier {tier}!",
+      "accentColor": "#1db954",
+      "textColor": "#ffffff",
+      "image": "",
+      "sound": "",
+      "soundVolume": 0.7
+    },
+    "resub": {
+      "enabled": true,
+      "duration": 7000,
+      "title": "Resub",
+      "message": "{name} resubscribed for {months} months!",
+      "accentColor": "#1db954",
+      "textColor": "#ffffff",
+      "image": "",
+      "sound": "",
+      "soundVolume": 0.7
+    },
+    "giftsub": {
+      "enabled": true,
+      "duration": 7000,
+      "title": "Gifted Sub",
+      "message": "{gifter} gifted a sub to {name}!",
+      "accentColor": "#1db954",
+      "textColor": "#ffffff",
+      "image": "",
+      "sound": "",
+      "soundVolume": 0.7
+    },
+    "giftbomb": {
+      "enabled": true,
+      "duration": 8000,
+      "title": "Gift Bomb",
+      "message": "{gifter} is gifting {count} subs to the community!",
+      "accentColor": "#e91916",
+      "textColor": "#ffffff",
+      "image": "",
+      "sound": "",
+      "soundVolume": 0.8
+    },
+    "cheer": {
+      "enabled": true,
+      "duration": 7000,
+      "title": "Bits",
+      "message": "{name} cheered {bits} bits!",
+      "accentColor": "#772ce8",
+      "textColor": "#ffffff",
+      "image": "",
+      "sound": "",
+      "soundVolume": 0.7
+    },
+    "raid": {
+      "enabled": true,
+      "duration": 8000,
+      "title": "Raid",
+      "message": "{name} raided with {viewers} viewers!",
+      "accentColor": "#f0a500",
+      "textColor": "#ffffff",
+      "image": "",
+      "sound": "",
+      "soundVolume": 0.8
+    }
+  }
+}

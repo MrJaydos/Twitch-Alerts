@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Twitch Alerts Overlay</title>
+    <link rel="stylesheet" href="/overlay.css" />
+  </head>
+  <body>
+    <div id="stage">
+      <div id="alert" class="alert" aria-live="polite">
+        <div class="alert-image-wrap"><img id="alert-image" alt="" /></div>
+        <div class="alert-body">
+          <div id="alert-title" class="alert-title"></div>
+          <div id="alert-message" class="alert-message"></div>
+        </div>
+      </div>
+    </div>
+    <audio id="alert-audio"></audio>
+    <script src="/overlay.js"></script>
+  </body>
+</html>
