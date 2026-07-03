@@ -50,9 +50,20 @@ html, body { width: 100%; height: 100%; background: transparent; overflow: hidde
 .punch-flash { position: absolute; inset: 0; background: radial-gradient(circle at center, #fff, rgba(255,255,255,0) 60%); opacity: 0; }
 .punch.show .punch-flash { animation: punch-flash .5s ease-out forwards; }
 @keyframes punch-flash { 0% { opacity: 0; } 6% { opacity: .95; } 100% { opacity: 0; } }
-.punch-rays { position: absolute; width: 180vmax; height: 180vmax; opacity: 0; transform: scale(.2); background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--accent) 22%, transparent) 0 6deg, transparent 6deg 12deg); }
-.punch.show .punch-rays { animation: punch-rays 2.6s ease-out forwards; }
-@keyframes punch-rays { 0% { opacity: 0; transform: scale(.2) rotate(0); } 14% { opacity: .7; } 100% { opacity: 0; transform: scale(1) rotate(40deg); } }
+/* Sunburst is far larger than the screen at every scale so its square edges
+   are always off-screen; a radial mask feathers it, and it reveals via a fast
+   opacity punch (not a slow grow) so you never see it "fill in". */
+.punch-rays { position: absolute; width: 360vmax; height: 360vmax; opacity: 0; transform: scale(.7) rotate(0deg);
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--accent) 20%, transparent) 0 6deg, transparent 6deg 12deg);
+  -webkit-mask-image: radial-gradient(circle, #000 38%, transparent 62%); mask-image: radial-gradient(circle, #000 38%, transparent 62%); }
+.punch.show .punch-rays { animation: punch-rays 2.8s cubic-bezier(.12,.8,.2,1) forwards; }
+@keyframes punch-rays {
+  0%   { opacity: 0; transform: scale(.7) rotate(0deg); }
+  7%   { opacity: .85; transform: scale(1.06) rotate(5deg); }
+  15%  { opacity: .8; transform: scale(1) rotate(8deg); }
+  80%  { opacity: .5; }
+  100% { opacity: 0; transform: scale(1.02) rotate(38deg); }
+}
 .punch-shake { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .punch.show .punch-shake { animation: shake .5s ease-out .3s both; }
 @keyframes shake { 0% { transform: translate(0,0); } 15% { transform: translate(-14px,8px); } 30% { transform: translate(12px,-10px); } 45% { transform: translate(-9px,-6px); } 60% { transform: translate(7px,7px); } 75% { transform: translate(-4px,3px); } 100% { transform: translate(0,0); } }

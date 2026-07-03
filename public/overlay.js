@@ -50,6 +50,7 @@ function fxLoop() {
     p.vy += p.g;
     p.vx *= p.drag; p.vy *= p.drag;
     p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life--;
+    if (p.grow) p.size += p.grow;
     if (p.life <= 0 || p.y > fxCanvas.height + 60) { particles.splice(i, 1); continue; }
     const a = Math.min(1, p.life / p.fade);
     fxCtx.save();
@@ -75,6 +76,15 @@ function drawConfetti(ctx, p) { ctx.fillStyle = p.color; ctx.fillRect(-p.size, -
 function drawSpark(ctx, p) {
   ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 12;
   ctx.beginPath(); ctx.arc(0, 0, p.size, 0, 7); ctx.fill();
+}
+function drawShock(ctx, p) {
+  ctx.strokeStyle = p.color; ctx.lineWidth = Math.max(1, 10 * (p.life / p.fade));
+  ctx.beginPath(); ctx.arc(0, 0, p.size, 0, 7); ctx.stroke();
+}
+// Expanding impact ring.
+function shockwave(x, y, accent) {
+  particles.push({ x, y, vx: 0, vy: 0, g: 0, drag: 1, rot: 0, vr: 0,
+    size: 20, grow: 26, life: 26, fade: 26, color: accent, draw: drawShock });
 }
 
 // Coins erupt from a point (the cannon) then rain down.
@@ -316,7 +326,8 @@ function playPunch(event, style, done) {
     els.punchName.textContent = event.name || "";
     els.punchSub.textContent = subLine(event);
   }, done);
-  // Emote-firework burst as the name lands.
+  // Shockwave ring on the impact, then an emote-firework as the name lands.
+  setTimeout(() => shockwave(window.innerWidth / 2, window.innerHeight / 2, accentOf(style)), 300);
   setTimeout(() => firework(accentOf(style)), 600);
 }
 function playPop(event, style, done) {
