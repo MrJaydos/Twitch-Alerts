@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/overlay.css" />
   </head>
   <body>
+    <!-- Banner style: compact top notification (follow / cheer / raid). -->
     <div id="stage">
       <div id="alert" class="alert" aria-live="polite">
         <div class="alert-image-wrap"><img id="alert-image" alt="" /></div>
@@ -16,6 +17,24 @@
         </div>
       </div>
     </div>
+
+    <!-- Punch style: full-screen centered takeover (subs / resubs / gifts). -->
+    <div id="punch" class="punch">
+      <div class="punch-flash"></div>
+      <div class="punch-rays"></div>
+      <div class="punch-shake">
+        <div class="punch-doors">
+          <div class="punch-door punch-door-l"></div>
+          <div class="punch-door punch-door-r"></div>
+        </div>
+        <div class="punch-content">
+          <div class="punch-word" id="punch-word"></div>
+          <div class="punch-name" id="punch-name"></div>
+          <div class="punch-sub" id="punch-sub"></div>
+        </div>
+      </div>
+    </div>
+
     <audio id="alert-audio"></audio>
     <script src="/overlay.js"></script>
   </body>

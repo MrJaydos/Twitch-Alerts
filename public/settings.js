@@ -40,6 +40,7 @@ function renderAlertCards() {
     el(".alert-name", node).textContent = meta.label;
     el(".tokens", node).textContent = "Tokens: " + meta.tokens;
     el(".f-enabled", node).checked = a.enabled !== false;
+    el(".f-style", node).value = a.style || "banner";
     el(".f-title", node).value = a.title || "";
     el(".f-message", node).value = a.message || "";
     el(".f-duration", node).value = a.duration || 6000;
@@ -68,6 +69,7 @@ function collectFromDom() {
     const key = card.dataset.key;
     const a = config.alerts[key];
     a.enabled = el(".f-enabled", card).checked;
+    a.style = el(".f-style", card).value;
     a.title = el(".f-title", card).value;
     a.message = el(".f-message", card).value;
     a.duration = Number(el(".f-duration", card).value) || 6000;

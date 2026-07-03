@@ -35,6 +35,7 @@ export const DEFAULT_CONFIG = {
   alerts: {
     follow: {
       enabled: true,
+      style: "banner",
       duration: 6000,
       title: "New Follower",
       message: "{name} just followed!",
@@ -46,6 +47,7 @@ export const DEFAULT_CONFIG = {
     },
     sub: {
       enabled: true,
+      style: "punch",
       duration: 7000,
       title: "New Subscriber",
       message: "{name} subscribed at Tier {tier}!",
@@ -57,6 +59,7 @@ export const DEFAULT_CONFIG = {
     },
     resub: {
       enabled: true,
+      style: "punch",
       duration: 7000,
       title: "Resub",
       message: "{name} resubscribed for {months} months!",
@@ -68,6 +71,7 @@ export const DEFAULT_CONFIG = {
     },
     giftsub: {
       enabled: true,
+      style: "punch",
       duration: 7000,
       title: "Gifted Sub",
       message: "{gifter} gifted a sub to {name}!",
@@ -79,6 +83,7 @@ export const DEFAULT_CONFIG = {
     },
     giftbomb: {
       enabled: true,
+      style: "punch",
       duration: 8000,
       title: "Gift Bomb",
       message: "{gifter} is gifting {count} subs to the community!",
@@ -90,6 +95,7 @@ export const DEFAULT_CONFIG = {
     },
     cheer: {
       enabled: true,
+      style: "banner",
       duration: 7000,
       title: "Bits",
       message: "{name} cheered {bits} bits!",
@@ -101,6 +107,7 @@ export const DEFAULT_CONFIG = {
     },
     raid: {
       enabled: true,
+      style: "banner",
       duration: 8000,
       title: "Raid",
       message: "{name} raided with {viewers} viewers!",

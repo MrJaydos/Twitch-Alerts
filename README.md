@@ -75,6 +75,25 @@ The repo ships a `Dockerfile` and `docker-compose.yml`.
 Then point your OBS Browser Source at
 `https://your-domain/overlay.html`.
 
+## Alert styles
+
+Each alert type renders in one of two styles (set per type on the settings
+page):
+
+- **Punch** — a loud, full-screen centered takeover: a doors-open reveal, a
+  hard "punch" impact with a screen flash + shake + sunburst, a giant name and
+  a subtitle line (e.g. "6 MONTHS"). This recreates the original LachhhTools
+  on-stream subscriber animation (`UI_NewSubAnim`), which centered itself on the
+  stage with named `punchMc`/`doorsMc` elements and played a sound. Punch alerts
+  play a **built-in impact sound** (synthesized in the browser, no file needed);
+  set a Sound URL to override it. **Default for subs, resubs and gifts.**
+- **Banner** — a compact notification that slides in at the top. **Default for
+  follows, cheers and raids.**
+
+Subtitles on punch alerts come straight from the event (tier / months / gifter),
+mirroring the original's "name + N MONTHS" layout; the Message field applies to
+banner alerts.
+
 ## Design
 
 The overlay's look is taken from the original LachhhTools Flash source

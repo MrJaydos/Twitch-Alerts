@@ -138,3 +138,154 @@ html, body {
 .alert-message .hl {
   color: var(--accent);
 }
+
+/* ======================================================================
+   PUNCH STYLE — full-screen centered takeover (subs/resubs/gifts).
+   Recreates the original UI_NewSubAnim: a doors reveal, a hard "punch"
+   impact with a screen flash + shake, big name and "N MONTHS".
+   ====================================================================== */
+.punch {
+  --accent: #a2cab8;
+  --text: #e1f7f1;
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.punch.show { display: flex; }
+
+/* White impact flash on the moment of the punch. */
+.punch-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, #ffffff, rgba(255, 255, 255, 0) 60%);
+  opacity: 0;
+}
+.punch.show .punch-flash { animation: punch-flash 0.5s ease-out forwards; }
+@keyframes punch-flash {
+  0% { opacity: 0; }
+  6% { opacity: 0.95; }
+  100% { opacity: 0; }
+}
+
+/* Accent burst rays behind the text. */
+.punch-rays {
+  position: absolute;
+  width: 180vmax;
+  height: 180vmax;
+  background: repeating-conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--accent) 22%, transparent) 0deg 6deg,
+    transparent 6deg 12deg
+  );
+  opacity: 0;
+  transform: scale(0.2);
+}
+.punch.show .punch-rays { animation: punch-rays 2.6s ease-out forwards; }
+@keyframes punch-rays {
+  0% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+  14% { opacity: 0.7; }
+  100% { opacity: 0; transform: scale(1) rotate(40deg); }
+}
+
+/* Container that shakes on impact. */
+.punch-shake {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.punch.show .punch-shake { animation: punch-shake 0.5s ease-out 0.28s both; }
+@keyframes punch-shake {
+  0% { transform: translate(0, 0); }
+  15% { transform: translate(-14px, 8px); }
+  30% { transform: translate(12px, -10px); }
+  45% { transform: translate(-9px, -6px); }
+  60% { transform: translate(7px, 7px); }
+  75% { transform: translate(-4px, 3px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Doors that slam open to reveal the name. */
+.punch-doors {
+  position: absolute;
+  inset: -40px -60px;
+  display: flex;
+}
+.punch-door {
+  flex: 1;
+  background: linear-gradient(180deg, rgba(29, 38, 44, 0.98), rgba(19, 24, 27, 0.98));
+  border-top: 3px solid var(--accent);
+  border-bottom: 3px solid var(--accent);
+}
+.punch-door-l { border-right: 2px solid color-mix(in srgb, var(--accent) 60%, transparent); }
+.punch.show .punch-door-l { animation: door-l 0.5s cubic-bezier(0.5, 0, 0.2, 1) 0.28s both; }
+.punch.show .punch-door-r { animation: door-r 0.5s cubic-bezier(0.5, 0, 0.2, 1) 0.28s both; }
+@keyframes door-l { from { transform: translateX(0); } to { transform: translateX(-105%); } }
+@keyframes door-r { from { transform: translateX(0); } to { transform: translateX(105%); } }
+
+.punch-content {
+  position: relative;
+  padding: 40px 70px;
+  opacity: 0;
+}
+.punch.show .punch-content { animation: punch-content 2.8s ease-out forwards; }
+@keyframes punch-content {
+  0%, 24% { opacity: 0; }
+  30% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* The label word (e.g. "NEW SUBSCRIBER") slams in first. */
+.punch-word {
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 60%, transparent), 0 4px 18px rgba(0, 0, 0, 0.7);
+  transform: scale(0.2);
+  opacity: 0;
+}
+.punch.show .punch-word { animation: slam 0.5s cubic-bezier(0.2, 1.4, 0.3, 1) 0.28s both; }
+
+/* The giant name. */
+.punch-name {
+  font-size: 128px;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  margin: 10px 0 6px;
+  text-shadow: 0 0 40px rgba(0, 0, 0, 0.6), 0 8px 26px rgba(0, 0, 0, 0.75);
+  transform: scale(0.2);
+  opacity: 0;
+  max-width: 92vw;
+  overflow-wrap: anywhere;
+}
+.punch.show .punch-name { animation: slam 0.55s cubic-bezier(0.2, 1.5, 0.3, 1) 0.4s both; }
+
+/* The subtitle line ("6 MONTHS" / tier / gifter). */
+.punch-sub {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.7);
+  transform: scale(0.4);
+  opacity: 0;
+}
+.punch.show .punch-sub { animation: slam 0.5s cubic-bezier(0.2, 1.35, 0.3, 1) 0.52s both; }
+
+@keyframes slam {
+  0% { transform: scale(2.2); opacity: 0; }
+  40% { opacity: 1; }
+  60% { transform: scale(0.92); }
+  100% { transform: scale(1); opacity: 1; }
+}

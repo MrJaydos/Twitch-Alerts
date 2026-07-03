@@ -97,9 +97,15 @@
           </div>
         </div>
         <div class="grid">
-          <label>Title<input type="text" class="f-title" /></label>
-          <label>Message<input type="text" class="f-message" /></label>
+          <label>Style
+            <select class="f-style">
+              <option value="banner">Banner (top notification)</option>
+              <option value="punch">Punch (full-screen takeover)</option>
+            </select>
+          </label>
           <label>Duration (ms)<input type="number" class="f-duration" min="1000" step="500" /></label>
+          <label>Title / label<input type="text" class="f-title" /></label>
+          <label>Message (banner only)<input type="text" class="f-message" /></label>
           <label>Accent colour<input type="color" class="f-accentColor" /></label>
           <label>Text colour<input type="color" class="f-textColor" /></label>
           <label>Sound volume<input type="range" class="f-soundVolume" min="0" max="1" step="0.05" /></label>
