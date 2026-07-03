@@ -31,9 +31,13 @@ both from the same Twitch events):
   LachhhTools widget (`lachhhWidget.swf`) in [Ruffle](https://ruffle.rs) (an
   open-source Flash emulator, bundled — no Flash Player needed) and feeds it your
   live events over the original tool's socket protocol. You get the genuine
-  article: the red "SUBSCRIBER LVL UP!" boxing-glove punch, the cheer cash-blast
-  with monsters, the rock-hands host/raid, original fonts and sounds. It renders
-  on a **green background** — add an OBS **Chroma Key** filter (key colour green).
+  article: the red "SUBSCRIBER LVL UP!" boxing-glove punch (into a full-screen
+  "MRJAYDOS" blood-splatter name reveal), the cheer cash-blast with monsters,
+  the rock-hands host/raid, original fonts and sounds. It renders on a **green
+  background** — add an OBS **Chroma Key** filter (key colour green). The
+  widget's own persistent chrome (donation bars, totals, song, ads, news) is
+  auto-masked while idle so **only the alerts show**, and the masks drop during
+  an alert so nothing is clipped.
 - **`/overlay.html` — the modern recreation.** A transparent CSS/SVG overlay
   (no chroma key needed), fully configurable per alert (text, colours, sounds,
   TTS, styles). Good if you want a clean, tweakable look rather than the exact

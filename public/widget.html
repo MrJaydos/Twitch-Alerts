@@ -9,10 +9,20 @@
       #stage { position: absolute; inset: 0; }
       /* Ruffle injects a player element; make it fill the stage. */
       #stage > * { width: 100% !important; height: 100% !important; }
+      /* Chroma-green bands over the widget's persistent chrome (bottom: donation
+         bars/totals/song/ads; top: news ticker/music credit). They key out with
+         the background in OBS, and drop while an alert plays so nothing clips. */
+      .chrome-mask { position: absolute; left: 0; right: 0; background: #00ff00; transition: opacity 0.25s ease; pointer-events: none; }
+      #chrome-mask-bottom { bottom: 0; height: 22%; }
+      #chrome-mask-top { top: 0; height: 13%; }
+      .chrome-mask.reveal { opacity: 0; }
     </style>
   </head>
   <body>
     <div id="stage"></div>
+    <!-- Green masks over the widget's persistent chrome (see CSS). -->
+    <div id="chrome-mask-top" class="chrome-mask"></div>
+    <div id="chrome-mask-bottom" class="chrome-mask"></div>
     <script src="/widget/ruffle/ruffle.js"></script>
     <script>
       // Runs the original LachhhTools widget (lachhhWidget.swf) in Ruffle. The
@@ -46,6 +56,28 @@
           allowScriptAccess: true
         });
       });
+
+      // The mask exists only to hide the widget's persistent chrome (donation
+      // bars, totals, song, ads) while IDLE. Alerts use the whole screen, so
+      // drop the mask for the duration of any alert, then restore it.
+      const masks = document.querySelectorAll(".chrome-mask");
+      let maskTimer = null;
+      function reveal(ms) {
+        masks.forEach((m) => m.classList.add("reveal"));
+        clearTimeout(maskTimer);
+        maskTimer = setTimeout(() => masks.forEach((m) => m.classList.remove("reveal")), ms);
+      }
+      (function connectFeed() {
+        const ws = new WebSocket(`${wsProto}://${location.host}/ws`);
+        ws.onmessage = (e) => {
+          try {
+            const d = JSON.parse(e.data);
+            if (d.kind === "alert") reveal(10000);
+          } catch { /* ignore */ }
+        };
+        ws.onclose = () => setTimeout(connectFeed, 2000);
+        ws.onerror = () => ws.close();
+      })();
     </script>
   </body>
 </html>
