@@ -22,6 +22,25 @@ renders them with the **same styling as a normal subscriber alert** (the
 you remembered it was meant to work. Turn the toggle off to give gifts their
 own look.
 
+## Two overlays
+
+There are two Browser Source overlays; use whichever you like (the server drives
+both from the same Twitch events):
+
+- **`/widget.html` — the original animations (authentic).** This runs the *real*
+  LachhhTools widget (`lachhhWidget.swf`) in [Ruffle](https://ruffle.rs) (an
+  open-source Flash emulator, bundled — no Flash Player needed) and feeds it your
+  live events over the original tool's socket protocol. You get the genuine
+  article: the red "SUBSCRIBER LVL UP!" boxing-glove punch, the cheer cash-blast
+  with monsters, the rock-hands host/raid, original fonts and sounds. It renders
+  on a **green background** — add an OBS **Chroma Key** filter (key colour green).
+- **`/overlay.html` — the modern recreation.** A transparent CSS/SVG overlay
+  (no chroma key needed), fully configurable per alert (text, colours, sounds,
+  TTS, styles). Good if you want a clean, tweakable look rather than the exact
+  original.
+
+Both are shown with copy buttons on the settings page.
+
 ## Alert types
 
 | Type | Source | Notes |

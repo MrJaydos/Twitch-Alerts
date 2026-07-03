@@ -41,7 +41,21 @@
 
       <section class="card">
         <h2>Overlay URL</h2>
-        <p class="hint">Add this as a <strong>Browser Source</strong> in OBS (1920×1080, transparent).</p>
+        <p class="hint">
+          Two overlays are available — add whichever you prefer as a
+          <strong>Browser Source</strong> in OBS (1280×720).
+        </p>
+        <label class="hint" style="display:block;margin:10px 0 4px">
+          <strong>Original animations</strong> — the real LachhhTools widget (recommended).
+          Runs on a <em>green background</em>: add a <strong>Chroma Key</strong> filter (key colour green) in OBS.
+        </label>
+        <div class="row">
+          <input id="widget-url" type="text" readonly />
+          <button id="copy-widget-url" class="ghost">Copy</button>
+        </div>
+        <label class="hint" style="display:block;margin:14px 0 4px">
+          <strong>Modern overlay</strong> — the transparent CSS/SVG recreation (no chroma key needed).
+        </label>
         <div class="row">
           <input id="overlay-url" type="text" readonly />
           <button id="copy-url" class="ghost">Copy</button>

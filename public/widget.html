@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Twitch Alerts — Original Widget</title>
+    <style>
+      html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+      #stage { position: absolute; inset: 0; }
+      /* Ruffle injects a player element; make it fill the stage. */
+      #stage > * { width: 100% !important; height: 100% !important; }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="/widget/ruffle/ruffle.js"></script>
+    <script>
+      // Runs the original LachhhTools widget (lachhhWidget.swf) in Ruffle. The
+      // widget opens a Flash TCP socket to 127.0.0.1:9231; Ruffle relays that
+      // over a WebSocket to our server (/widget-socket), which sends it alert
+      // messages. The widget renders on a green background for OBS chroma key.
+      const wsProto = location.protocol === "https:" ? "wss" : "ws";
+      const proxyUrl = `${wsProto}://${location.host}/widget-socket`;
+
+      window.RufflePlayer = window.RufflePlayer || {};
+      window.RufflePlayer.config = {
+        autoplay: "on",
+        unmuteOverlay: "hidden",
+        muted: false,
+        contextMenu: false,
+        splashScreen: false,
+        warnOnUnsupportedContent: false,
+        preferredRenderer: "webgl",
+        socketProxy: [{ host: "127.0.0.1", port: 9231, proxyUrl }]
+      };
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const ruffle = window.RufflePlayer.newest();
+        const player = ruffle.createPlayer();
+        document.getElementById("stage").appendChild(player);
+        player.load({
+          url: "/widget/lachhhWidget.swf",
+          autoplay: "on",
+          muted: false,
+          unmuteOverlay: "hidden",
+          allowScriptAccess: true
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -33,6 +33,7 @@ const OPEN_PATHS = new Set([
   "/overlay.html",
   "/overlay.js",
   "/overlay.css",
+  "/widget.html",
   "/login",
   "/api/login",
   "/favicon.ico"
@@ -71,7 +72,7 @@ function timingSafeEqual(a, b) {
 
 app.use((req, res, next) => {
   if (!authEnabled()) return next();
-  if (OPEN_PATHS.has(req.path) || req.path.startsWith("/fonts/")) return next();
+  if (OPEN_PATHS.has(req.path) || req.path.startsWith("/fonts/") || req.path.startsWith("/widget/")) return next();
   if (isAuthed(req)) return next();
   if (req.path.startsWith("/api/") || req.path.startsWith("/auth/")) {
     return res.status(401).json({ error: "unauthorized" });
@@ -121,7 +122,17 @@ app.get("/favicon.ico", (req, res) => res.status(204).end());
 app.use(
   express.static(PUBLIC_DIR, {
     setHeaders(res, filePath) {
-      if (/\.(html|js|css)$/i.test(filePath)) {
+      if (/\.wasm$/i.test(filePath)) {
+        res.set("Content-Type", "application/wasm");
+        res.set("Cache-Control", "public, max-age=604800");
+      } else if (/\.swf$/i.test(filePath)) {
+        res.set("Content-Type", "application/x-shockwave-flash");
+        res.set("Cache-Control", "public, max-age=604800");
+      } else if (/\.(html|css)$/i.test(filePath)) {
+        res.set("Cache-Control", NO_CACHE);
+      } else if (/ruffle[\\/].*\.js$/i.test(filePath)) {
+        res.set("Cache-Control", "public, max-age=604800"); // Ruffle chunks are hashed
+      } else if (/\.js$/i.test(filePath)) {
         res.set("Cache-Control", NO_CACHE);
       } else if (/\.(woff2?|png|jpe?g|gif|svg|mp3|ogg)$/i.test(filePath)) {
         res.set("Cache-Control", "public, max-age=604800");
@@ -132,13 +143,72 @@ app.use(
 
 const server = http.createServer(app);
 
-// --- WebSocket hub: overlay clients connect here and receive alert events ---
-const wss = new WebSocketServer({ server, path: "/ws" });
+// --- WebSocket hubs -------------------------------------------------------
+// /ws            : the CSS overlay clients (receive JSON alert events)
+// /widget-socket : Ruffle's socket proxy for the original widget. The widget
+//                  opens a Flash TCP socket (127.0.0.1:9231); Ruffle relays it
+//                  here, and we feed it the original tool's alert protocol.
+const wss = new WebSocketServer({ noServer: true });
+const widgetWss = new WebSocketServer({ noServer: true });
+
+server.on("upgrade", (req, socket, head) => {
+  let pathname = "/";
+  try {
+    pathname = new URL(req.url, "http://localhost").pathname;
+  } catch {
+    /* ignore */
+  }
+  if (pathname === "/ws") {
+    wss.handleUpgrade(req, socket, head, (ws) => wss.emit("connection", ws, req));
+  } else if (pathname === "/widget-socket") {
+    widgetWss.handleUpgrade(req, socket, head, (ws) => widgetWss.emit("connection", ws, req));
+  } else {
+    socket.destroy();
+  }
+});
 
 function broadcast(payload) {
   const msg = JSON.stringify(payload);
   for (const client of wss.clients) {
     if (client.readyState === client.OPEN) client.send(msg);
+  }
+}
+
+// The original widget (Flash) requests a socket policy file on connect; answer
+// it, then unlock alerts with a minimal config (the widget self-initialises its
+// defaults, so an empty refreshConfig is enough to enable the built-in anims).
+const SOCKET_POLICY =
+  '<?xml version="1.0"?><cross-domain-policy><allow-access-from domain="*" to-ports="*"/></cross-domain-policy>\0';
+
+widgetWss.on("connection", (ws) => {
+  ws.on("message", (m) => {
+    if (m.toString().includes("policy-file-request")) ws.send(Buffer.from(SOCKET_POLICY));
+  });
+  setTimeout(() => {
+    if (ws.readyState === ws.OPEN) ws.send(Buffer.from(JSON.stringify({ type: "refreshConfig" }) + "\n"));
+  }, 300);
+  console.log("[widget] Ruffle widget connected");
+});
+
+// Translate a normalized alert event into the original widget's JSON protocol.
+function toWidgetMessage(e) {
+  switch (e.type) {
+    case "follow": return { type: "followAlert", name: e.name };
+    case "sub": return { type: "subAlert", name: e.name, numMonthInARow: e.months || 1, modelSubSource: "twitch" };
+    case "resub": return { type: "subAlert", name: e.name, numMonthInARow: e.months || 1, modelSubSource: "twitch" };
+    case "giftsub": return { type: "subAlert", name: e.name, numMonthInARow: 1, modelSubSource: "twitch" };
+    case "giftbomb": return { type: "subAlert", name: e.gifter, numMonthInARow: 1, modelSubSource: "twitch" };
+    case "cheer": return { type: "cheerAlert", name: e.name, numBits: e.bits || 0 };
+    case "raid": return { type: "hostAlert", name: e.name, numViewers: e.viewers || 0 };
+    default: return null;
+  }
+}
+function feedWidget(event) {
+  const msg = toWidgetMessage(event);
+  if (!msg) return;
+  const data = Buffer.from(JSON.stringify(msg) + "\n");
+  for (const ws of widgetWss.clients) {
+    if (ws.readyState === ws.OPEN) ws.send(data);
   }
 }
 
@@ -192,6 +262,7 @@ function handleAlert(event, source = "twitch") {
   });
   if (!fired) return;
   broadcast({ kind: "alert", event, style: block, styleKey, tts: config.tts });
+  feedWidget(event); // drive the original widget overlay too
   console.log(`[alert] ${event.type} (${source}):`, event.name);
 }
 

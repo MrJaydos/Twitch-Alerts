@@ -195,11 +195,17 @@ async function init() {
   el("#channel").value = config.channel || "";
   el("#treatGiftedAsSub").checked = config.treatGiftedAsSub !== false;
   el("#overlay-url").value = `${location.origin}/overlay.html`;
-  el("#copy-url").addEventListener("click", () => {
-    navigator.clipboard.writeText(`${location.origin}/overlay.html`);
-    el("#copy-url").textContent = "Copied!";
-    setTimeout(() => (el("#copy-url").textContent = "Copy"), 1500);
-  });
+  el("#widget-url").value = `${location.origin}/widget.html`;
+  const copyBtn = (btnId, url) =>
+    el(btnId).addEventListener("click", () => {
+      navigator.clipboard.writeText(url);
+      const b = el(btnId);
+      const t = b.textContent;
+      b.textContent = "Copied!";
+      setTimeout(() => (b.textContent = t), 1500);
+    });
+  copyBtn("#copy-url", `${location.origin}/overlay.html`);
+  copyBtn("#copy-widget-url", `${location.origin}/widget.html`);
   el("#save").addEventListener("click", save);
   el("#logout").addEventListener("click", async () => {
     await fetch("/api/logout", { method: "POST" });
