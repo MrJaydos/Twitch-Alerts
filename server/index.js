@@ -70,7 +70,7 @@ function timingSafeEqual(a, b) {
 
 app.use((req, res, next) => {
   if (!authEnabled()) return next();
-  if (OPEN_PATHS.has(req.path)) return next();
+  if (OPEN_PATHS.has(req.path) || req.path.startsWith("/fonts/")) return next();
   if (isAuthed(req)) return next();
   if (req.path.startsWith("/api/") || req.path.startsWith("/auth/")) {
     return res.status(401).json({ error: "unauthorized" });

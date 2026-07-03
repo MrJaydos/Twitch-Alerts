@@ -75,6 +75,18 @@ The repo ships a `Dockerfile` and `docker-compose.yml`.
 Then point your OBS Browser Source at
 `https://your-domain/overlay.html`.
 
+## Design
+
+The overlay's look is taken from the original LachhhTools Flash source
+(`LachhhToolsInterfaces.fla`): the dark charcoal glass panel (`#13181B` /
+`#1D262C`), the faint teal border (`#80A297`), the mint alert label (`#A2CAB8`)
+and near-white name (`#E1F7F1`), and the geometric bold typography. The
+original used the commercial *Nexa* font; a close open-source substitute
+(Montserrat, OFL) is bundled and self-hosted under `public/fonts`. The elastic
+entrance recreates the feel of the original's ActionScript motion effects
+(`EffectGotoElastic` / `EffectKickBack` / `EffectSquash`). All colours, text and
+timing remain editable per alert on the settings page.
+
 ## Password protection
 
 Set the `ADMIN_PASSWORD` environment variable to require a login for the
