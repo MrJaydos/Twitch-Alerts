@@ -23,7 +23,8 @@ const els = {
   rainbowWord: document.getElementById("rainbow-word"),
   rainbowName: document.getElementById("rainbow-name"),
   rainbowSub: document.getElementById("rainbow-sub"),
-  rainbowSparkles: document.getElementById("rainbow-sparkles")
+  cannonBag: document.getElementById("cannon-bag"),
+  fx: document.getElementById("fx")
 };
 
 // Fixed on-screen length per style (ms), tuned to each animation.
@@ -31,6 +32,113 @@ const LENGTHS = { punch: 3400, pop: 2600, cannon: 3900, rainbow: 3600 };
 
 const queue = [];
 let playing = false;
+
+// ======================================================================
+// Particle engine — one canvas, one RAF loop. Effects push particles.
+// ======================================================================
+const fxCanvas = els.fx;
+const fxCtx = fxCanvas.getContext("2d");
+let particles = [];
+function sizeCanvas() { fxCanvas.width = window.innerWidth; fxCanvas.height = window.innerHeight; }
+sizeCanvas();
+window.addEventListener("resize", sizeCanvas);
+
+function fxLoop() {
+  fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.vy += p.g;
+    p.vx *= p.drag; p.vy *= p.drag;
+    p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life--;
+    if (p.life <= 0 || p.y > fxCanvas.height + 60) { particles.splice(i, 1); continue; }
+    const a = Math.min(1, p.life / p.fade);
+    fxCtx.save();
+    fxCtx.globalAlpha = a;
+    fxCtx.translate(p.x, p.y);
+    fxCtx.rotate(p.rot);
+    p.draw(fxCtx, p);
+    fxCtx.restore();
+  }
+  requestAnimationFrame(fxLoop);
+}
+requestAnimationFrame(fxLoop);
+
+const rand = (a, b) => a + Math.random() * (b - a);
+
+function drawCoin(ctx, p) {
+  ctx.beginPath(); ctx.arc(0, 0, p.size, 0, 7); ctx.fillStyle = "#f0b24a"; ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = "#b6842a"; ctx.stroke();
+  ctx.fillStyle = "#8a5a12"; ctx.font = `800 ${p.size}px AlertSans, sans-serif`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("$", 0, 1);
+}
+function drawConfetti(ctx, p) { ctx.fillStyle = p.color; ctx.fillRect(-p.size, -p.size * 0.6, p.size * 2, p.size * 1.2); }
+function drawSpark(ctx, p) {
+  ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.arc(0, 0, p.size, 0, 7); ctx.fill();
+}
+
+// Coins erupt from a point (the cannon) then rain down.
+function coinBurst(x, y, n = 26) {
+  for (let i = 0; i < n; i++) {
+    const ang = rand(-Math.PI * 0.85, -Math.PI * 0.15);
+    const sp = rand(9, 20);
+    particles.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, g: 0.55, drag: 0.995,
+      rot: rand(0, 7), vr: rand(-0.3, 0.3), size: rand(10, 18), life: rand(70, 120), fade: 40, draw: drawCoin });
+  }
+}
+// Confetti rains from the top.
+function confetti(n = 90) {
+  const cols = ["#e5484d", "#f2711c", "#ffd21e", "#46a758", "#3b82f6", "#8b5cf6", "#e1f7f1"];
+  for (let i = 0; i < n; i++) {
+    particles.push({ x: rand(0, fxCanvas.width), y: rand(-fxCanvas.height * 0.3, 0), vx: rand(-2, 2), vy: rand(2, 6),
+      g: 0.08, drag: 0.999, rot: rand(0, 7), vr: rand(-0.25, 0.25), size: rand(5, 9), color: cols[i % cols.length],
+      life: rand(120, 200), fade: 60, draw: drawConfetti });
+  }
+}
+// Emote/sparkle firework: rockets rise from the bottom and burst.
+function firework(accent) {
+  const cols = [accent, "#ffffff", "#ffd21e", "#e1f7f1"];
+  const shots = 5;
+  for (let s = 0; s < shots; s++) {
+    setTimeout(() => {
+      const x = rand(fxCanvas.width * 0.2, fxCanvas.width * 0.8);
+      const y = rand(fxCanvas.height * 0.25, fxCanvas.height * 0.5);
+      const col = cols[s % cols.length];
+      for (let i = 0; i < 24; i++) {
+        const ang = (i / 24) * Math.PI * 2;
+        const sp = rand(4, 9);
+        particles.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, g: 0.12, drag: 0.94,
+          rot: 0, vr: 0, size: rand(3, 6), color: col, life: rand(40, 70), fade: 40, draw: drawSpark });
+      }
+    }, s * 180);
+  }
+}
+// Sparkle ring bursting outward (follows).
+function sparkleRing(x, y, accent) {
+  for (let i = 0; i < 18; i++) {
+    const ang = (i / 18) * Math.PI * 2;
+    const sp = rand(5, 9);
+    particles.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, g: 0.02, drag: 0.93,
+      rot: 0, vr: 0, size: rand(3, 6), color: i % 2 ? accent : "#ffffff", life: rand(30, 55), fade: 35, draw: drawSpark });
+  }
+}
+
+// Physics-driven cash bag: parabola from the cannon across the screen + spin.
+function fireCashBag() {
+  const el = els.cannonBag;
+  const startX = fxCanvas.width - 220, startY = fxCanvas.height - 190;
+  let vx = -rand(15, 18), vy = -rand(20, 24);
+  let x = startX, y = startY, rot = 0;
+  el.style.opacity = "1";
+  const step = () => {
+    if (!els.cannon.classList.contains("show")) { el.style.opacity = "0"; return; }
+    vy += 0.6; x += vx; y += vy; rot += 0.14;
+    el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}rad)`;
+    if (y > fxCanvas.height + 120 || x < -140) { el.style.opacity = "0"; return; }
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
 
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (c) =>
@@ -200,43 +308,42 @@ function playFixed(el, style, fill, done) {
   setTimeout(() => { el.classList.remove("show"); done(); }, LENGTHS[style.style] || 3400);
 }
 
+function accentOf(style) { return style.accentColor || "#a2cab8"; }
+
 function playPunch(event, style, done) {
   playFixed(els.punch, style, () => {
     els.punchWord.textContent = style.title || "NEW SUBSCRIBER";
     els.punchName.textContent = event.name || "";
     els.punchSub.textContent = subLine(event);
   }, done);
+  // Emote-firework burst as the name lands.
+  setTimeout(() => firework(accentOf(style)), 600);
 }
 function playPop(event, style, done) {
   playFixed(els.pop, style, () => {
     els.popWord.textContent = style.title || "NEW FOLLOWER";
     els.popName.textContent = event.name || "";
   }, done);
+  setTimeout(() => sparkleRing(window.innerWidth / 2, window.innerHeight / 2 - 40, accentOf(style)), 150);
 }
 function playCannon(event, style, done) {
   playFixed(els.cannon, style, () => {
     els.cannonName.textContent = event.name || "";
     els.cannonBits.textContent = `${event.bits || 0} BITS`;
   }, done);
+  // Fire the bag + coin burst at the recoil moment (~0.72s into the 3.9s anim).
+  setTimeout(() => {
+    fireCashBag();
+    coinBurst(window.innerWidth - 210, window.innerHeight - 180, 28);
+  }, 720);
 }
 function playRainbow(event, style, done) {
   playFixed(els.rainbow, style, () => {
     els.rainbowWord.textContent = style.title || "RAID";
     els.rainbowName.textContent = event.name || "";
     els.rainbowSub.textContent = event.viewers ? `${event.viewers} RAIDERS` : "";
-    // scatter a handful of sparkles
-    els.rainbowSparkles.innerHTML = "";
-    for (let i = 0; i < 14; i++) {
-      const s = document.createElement("span");
-      s.className = "spk";
-      s.textContent = "✨";
-      s.style.left = 8 + Math.random() * 84 + "%";
-      s.style.top = 12 + Math.random() * 60 + "%";
-      s.style.animationDelay = (Math.random() * 1.2).toFixed(2) + "s";
-      s.style.fontSize = 26 + Math.random() * 34 + "px";
-      els.rainbowSparkles.appendChild(s);
-    }
   }, done);
+  setTimeout(() => confetti(110), 250);
 }
 
 const RENDERERS = { punch: playPunch, pop: playPop, cannon: playCannon, rainbow: playRainbow, banner: playBanner };

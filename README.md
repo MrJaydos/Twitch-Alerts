@@ -98,6 +98,12 @@ stand-ins carry the same motion and beats:
   ("rainbow" big variant + sparkle/crowd sounds).
 - **Banner** — a compact top notification (a clean fallback for any type).
 
+The art is custom inline **SVG** (a cartoon monster, cannon, cash bag, sub
+badge, follow heart) tinted to each alert's accent colour, plus a **canvas
+particle layer** (coin shower on cheers, confetti on raids, an emote-style
+firework on subs, a sparkle ring on follows). The cash bag flies on a real
+physics arc and the cannon recoils when it fires.
+
 Each style plays a **built-in synthesized sound** (impact / pop / boom /
 fanfare — no files needed); set a Sound URL to override it. Punch/rainbow
 subtitles and the cheer bits come straight from the event; the Message field

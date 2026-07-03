@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="/overlay.css" />
   </head>
   <body>
+    <!-- Particle layer (coins, confetti, fireworks) — sits behind the text. -->
+    <canvas id="fx"></canvas>
+
     <!-- BANNER: compact top notification (fallback). -->
     <div id="stage">
       <div id="alert" class="alert" aria-live="polite">
@@ -18,11 +21,18 @@
       </div>
     </div>
 
-    <!-- PUNCH: full-screen sub takeover (doors nameplate + punch). -->
+    <!-- PUNCH: full-screen sub takeover. -->
     <div id="punch" class="punch">
       <div class="punch-flash"></div>
       <div class="punch-rays"></div>
       <div class="punch-shake">
+        <div class="punch-badge">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="art-fill" cx="50" cy="50" r="46" />
+            <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2" />
+            <path class="art-ink" d="M50 20 61 41 84 45 67 61 71 84 50 73 29 84 33 61 16 45 39 41Z" />
+          </svg>
+        </div>
         <div class="punch-word" id="punch-word"></div>
         <div class="punch-plate">
           <div class="punch-door punch-door-l"></div>
@@ -35,7 +45,12 @@
 
     <!-- POP: quick centered follow alert. -->
     <div id="pop" class="pop">
-      <div class="pop-badge">＋</div>
+      <div class="pop-badge">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="art-fill" cx="50" cy="50" r="46" />
+          <path class="art-ink" d="M50 78C22 60 14 44 24 32c8-9 20-5 26 4 6-9 18-13 26-4 10 12 2 28-26 46Z" />
+        </svg>
+      </div>
       <div class="pop-word" id="pop-word"></div>
       <div class="pop-name" id="pop-name"></div>
     </div>
@@ -46,16 +61,35 @@
         <div class="cannon-name" id="cannon-name"></div>
         <div class="cannon-bits" id="cannon-bits"></div>
       </div>
-      <div class="cannon-monster">👾</div>
-      <div class="cannon-barrel">🛢️</div>
-      <div class="cannon-bag" id="cannon-bag">💰</div>
-      <div class="cannon-boom" id="cannon-boom"></div>
+      <div class="cannon-rig">
+        <svg class="art-monster" viewBox="0 0 120 110" aria-hidden="true">
+          <path class="art-fill" d="M22 30 8 6 40 24Z M98 30 112 6 80 24Z" />
+          <path class="art-fill" d="M18 62Q18 22 60 22 102 22 102 62L102 88Q102 100 90 100L30 100Q18 100 18 88Z" />
+          <circle cx="44" cy="54" r="13" fill="#fff" /><circle cx="76" cy="54" r="13" fill="#fff" />
+          <circle class="art-eye" cx="46" cy="57" r="6.5" /><circle class="art-eye" cx="78" cy="57" r="6.5" />
+          <path class="art-eye" d="M34 78 44 90 54 78 64 90 74 78 84 90 88 82 88 78Z" />
+        </svg>
+        <svg class="art-cannon" viewBox="0 0 140 110" aria-hidden="true">
+          <circle cx="42" cy="82" r="22" fill="#26313c" stroke="rgba(255,255,255,.15)" stroke-width="3" />
+          <circle cx="42" cy="82" r="7" class="art-fill" />
+          <g class="cannon-barrel-g">
+            <rect x="30" y="34" width="86" height="30" rx="10" transform="rotate(-32 42 60)" fill="#33404d" stroke="rgba(255,255,255,.18)" stroke-width="3" />
+            <circle cx="104" cy="19" r="17" fill="#1c242c" class="art-ring" />
+          </g>
+        </svg>
+      </div>
+      <div class="cannon-bag" id="cannon-bag">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <path d="M36 30Q50 12 64 30L58 36Q80 56 80 76 80 93 50 93 20 93 20 76 20 56 42 36Z" fill="#f0b24a" stroke="#b6842a" stroke-width="3" />
+          <path d="M36 30 44 22 56 22 64 30Z" fill="#ffd98a" stroke="#b6842a" stroke-width="3" />
+          <text x="50" y="74" text-anchor="middle" font-size="34" font-weight="800" fill="#8a5a12">$</text>
+        </svg>
+      </div>
     </div>
 
-    <!-- RAINBOW: centered celebratory host/raid alert. -->
+    <!-- RAINBOW: centered celebratory raid alert. -->
     <div id="rainbow" class="rainbow">
       <div class="rainbow-arc"></div>
-      <div class="rainbow-sparkles" id="rainbow-sparkles"></div>
       <div class="rainbow-content">
         <div class="rainbow-word" id="rainbow-word"></div>
         <div class="rainbow-name" id="rainbow-name"></div>
