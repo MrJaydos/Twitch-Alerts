@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/overlay.css" />
   </head>
   <body>
-    <!-- Banner style: compact top notification (follow / cheer / raid). -->
+    <!-- BANNER: compact top notification (fallback). -->
     <div id="stage">
       <div id="alert" class="alert" aria-live="polite">
         <div class="alert-image-wrap"><img id="alert-image" alt="" /></div>
@@ -18,20 +18,48 @@
       </div>
     </div>
 
-    <!-- Punch style: full-screen centered takeover (subs / resubs / gifts). -->
+    <!-- PUNCH: full-screen sub takeover (doors nameplate + punch). -->
     <div id="punch" class="punch">
       <div class="punch-flash"></div>
       <div class="punch-rays"></div>
       <div class="punch-shake">
-        <div class="punch-doors">
+        <div class="punch-word" id="punch-word"></div>
+        <div class="punch-plate">
           <div class="punch-door punch-door-l"></div>
           <div class="punch-door punch-door-r"></div>
-        </div>
-        <div class="punch-content">
-          <div class="punch-word" id="punch-word"></div>
           <div class="punch-name" id="punch-name"></div>
-          <div class="punch-sub" id="punch-sub"></div>
         </div>
+        <div class="punch-sub" id="punch-sub"></div>
+      </div>
+    </div>
+
+    <!-- POP: quick centered follow alert. -->
+    <div id="pop" class="pop">
+      <div class="pop-badge">＋</div>
+      <div class="pop-word" id="pop-word"></div>
+      <div class="pop-name" id="pop-name"></div>
+    </div>
+
+    <!-- CANNON: bottom-right monster + cannon firing a cash bag (cheer). -->
+    <div id="cannon" class="cannon">
+      <div class="cannon-label">
+        <div class="cannon-name" id="cannon-name"></div>
+        <div class="cannon-bits" id="cannon-bits"></div>
+      </div>
+      <div class="cannon-monster">👾</div>
+      <div class="cannon-barrel">🛢️</div>
+      <div class="cannon-bag" id="cannon-bag">💰</div>
+      <div class="cannon-boom" id="cannon-boom"></div>
+    </div>
+
+    <!-- RAINBOW: centered celebratory host/raid alert. -->
+    <div id="rainbow" class="rainbow">
+      <div class="rainbow-arc"></div>
+      <div class="rainbow-sparkles" id="rainbow-sparkles"></div>
+      <div class="rainbow-content">
+        <div class="rainbow-word" id="rainbow-word"></div>
+        <div class="rainbow-name" id="rainbow-name"></div>
+        <div class="rainbow-sub" id="rainbow-sub"></div>
       </div>
     </div>
 

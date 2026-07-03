@@ -77,22 +77,31 @@ Then point your OBS Browser Source at
 
 ## Alert styles
 
-Each alert type renders in one of two styles (set per type on the settings
-page):
+Each alert type has its own animation, set per type on the settings page. The
+styles recreate the *choreography* of the original LachhhTools on-stream alerts
+(read from the widget source in `platform/xSplitWidget`). The original's custom
+cartoon art lived in a compiled widget SWF that isn't in the repo, so emoji/CSS
+stand-ins carry the same motion and beats:
 
-- **Punch** — a loud, full-screen centered takeover: a doors-open reveal, a
-  hard "punch" impact with a screen flash + shake + sunburst, a giant name and
-  a subtitle line (e.g. "6 MONTHS"). This recreates the original LachhhTools
-  on-stream subscriber animation (`UI_NewSubAnim`), which centered itself on the
-  stage with named `punchMc`/`doorsMc` elements and played a sound. Punch alerts
-  play a **built-in impact sound** (synthesized in the browser, no file needed);
-  set a Sound URL to override it. **Default for subs, resubs and gifts.**
-- **Banner** — a compact notification that slides in at the top. **Default for
-  follows, cheers and raids.**
+- **Punch** *(subs, resubs, gifts)* — full-screen takeover: flash + sunburst,
+  a doors nameplate that frames the name, a hard "punch" impact with screen
+  shake, and a subtitle (tier / "N MONTHS" / gifter). Mirrors `UI_NewSubAnim`
+  (centered `punchMc`/`doorsMc` + sound).
+- **Pop** *(follows)* — a quick centered badge pop with the name. Mirrors
+  `UI_NewFollowerAnim` (centered, name-only, sound).
+- **Cannon** *(cheers)* — a monster rises bottom-right and a cannon fires a
+  cash bag arcing across the screen, with the cheerer's name + bits. Mirrors
+  `UI_NewCheerAnim` (bottom-right `FxMonster` + `FxCheerBag` fired at frame 52
+  with a boom).
+- **Rainbow** *(raids)* — a centered rainbow + sparkles celebration with the
+  raider's name and party size. Mirrors the host alert `UI_NewHostAnim`
+  ("rainbow" big variant + sparkle/crowd sounds).
+- **Banner** — a compact top notification (a clean fallback for any type).
 
-Subtitles on punch alerts come straight from the event (tier / months / gifter),
-mirroring the original's "name + N MONTHS" layout; the Message field applies to
-banner alerts.
+Each style plays a **built-in synthesized sound** (impact / pop / boom /
+fanfare — no files needed); set a Sound URL to override it. Punch/rainbow
+subtitles and the cheer bits come straight from the event; the Message field
+applies to the banner style.
 
 ## Design
 

@@ -35,7 +35,7 @@ export const DEFAULT_CONFIG = {
   alerts: {
     follow: {
       enabled: true,
-      style: "banner",
+      style: "pop",
       duration: 6000,
       title: "New Follower",
       message: "{name} just followed!",
@@ -95,7 +95,7 @@ export const DEFAULT_CONFIG = {
     },
     cheer: {
       enabled: true,
-      style: "banner",
+      style: "cannon",
       duration: 7000,
       title: "Bits",
       message: "{name} cheered {bits} bits!",
@@ -107,7 +107,7 @@ export const DEFAULT_CONFIG = {
     },
     raid: {
       enabled: true,
-      style: "banner",
+      style: "rainbow",
       duration: 8000,
       title: "Raid",
       message: "{name} raided with {viewers} viewers!",

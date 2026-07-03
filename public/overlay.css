@@ -1,291 +1,150 @@
-/* Overlay styling — a faithful nod to the original LachhhTools alert identity.
- *
- * Design values were read straight out of the original Flash source
- * (LachhhToolsInterfaces.fla):
- *   - document background / panel base: #13181B (dark charcoal)
- *   - panel fills: #1D262C / #32404A, faint teal border #80A297
- *   - alert label ("NEW SUBSCRIBER"): #A2CAB8 mint, NexaBold, uppercase
- *   - subscriber name: #E1F7F1 near-white, NexaBold, large
- *   - font family: Nexa (Montserrat is bundled here as a close, OFL substitute)
- *   - motion came from AS3 effects (EffectGotoElastic / EffectKickBack /
- *     EffectSquash) — recreated below as an elastic overshoot + squash settle.
+/* Overlay styling — recreates the choreography of the original LachhhTools
+ * on-stream alerts (all were full-screen/positioned timeline animations with
+ * sound, not corner banners). Custom cartoon art from the original widget SWF
+ * can't be extracted, so emoji/CSS stand-ins carry the same motion and beats:
+ *   - punch   (subs)   : doors nameplate + punch impact + big name + "N MONTHS"
+ *   - pop     (follows): quick centered name pop
+ *   - cannon  (cheers) : bottom-right monster + cannon firing a cash bag
+ *   - rainbow (raids)  : centered rainbow + sparkles celebration
+ * Palette/type from the .fla source: charcoal #13181B, mint #A2CAB8/#E1F7F1.
  */
 
-@font-face {
-  font-family: "AlertSans";
-  src: url("/fonts/montserrat-800.woff2") format("woff2");
-  font-weight: 800;
-  font-display: swap;
-}
-@font-face {
-  font-family: "AlertSans";
-  src: url("/fonts/montserrat-700.woff2") format("woff2");
-  font-weight: 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: "AlertSans";
-  src: url("/fonts/montserrat-400.woff2") format("woff2");
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: "AlertSans";
-  src: url("/fonts/montserrat-300.woff2") format("woff2");
-  font-weight: 300;
-  font-display: swap;
-}
+@font-face { font-family: "AlertSans"; src: url("/fonts/montserrat-800.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+@font-face { font-family: "AlertSans"; src: url("/fonts/montserrat-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "AlertSans"; src: url("/fonts/montserrat-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "AlertSans"; src: url("/fonts/montserrat-300.woff2") format("woff2"); font-weight: 300; font-display: swap; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 html, body {
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  overflow: hidden;
+  width: 100%; height: 100%;
+  background: transparent; overflow: hidden;
   font-family: "AlertSans", "Segoe UI", system-ui, sans-serif;
 }
 
-#stage {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 6vh;
-}
-
+/* ===================== BANNER (fallback) ===================== */
+#stage { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 6vh; }
 .alert {
-  --accent: #a2cab8;
-  --text: #e1f7f1;
-  display: flex;
-  align-items: center;
-  gap: 26px;
-  min-width: 460px;
-  max-width: 80vw;
-  padding: 26px 40px;
-  border-radius: 14px;
-  /* Charcoal glass panel — the original's #13181B base with depth. */
+  --accent: #a2cab8; --text: #e1f7f1;
+  display: flex; align-items: center; gap: 26px;
+  min-width: 460px; max-width: 80vw; padding: 26px 40px; border-radius: 14px;
   background: linear-gradient(180deg, rgba(29, 38, 44, 0.92), rgba(19, 24, 27, 0.94));
   border: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 22px 60px rgba(0, 0, 0, 0.6),
-    0 0 34px -8px var(--accent), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  color: var(--text);
-  opacity: 0;
-  transform: translateY(-30px);
-  pointer-events: none;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 22px 60px rgba(0,0,0,0.6), 0 0 34px -8px var(--accent);
+  color: var(--text); opacity: 0; transform: translateY(-30px); pointer-events: none;
 }
-
-/* Entrance: elastic overshoot (EffectGotoElastic) then a squash settle
-   (EffectSquash / EffectKickBack). */
 .alert.show { animation: alert-in 0.85s cubic-bezier(0.15, 0.9, 0.25, 1.15) forwards; }
 .alert.hide { animation: alert-out 0.45s ease-in forwards; }
-
-@keyframes alert-in {
-  0%   { opacity: 0; transform: translateY(-48px) scale(0.82, 1.1); }
-  55%  { opacity: 1; transform: translateY(6px) scale(1.06, 0.94); }
-  72%  { transform: translateY(-2px) scale(0.98, 1.02); }
-  86%  { transform: translateY(1px) scale(1.01, 0.99); }
-  100% { opacity: 1; transform: translateY(0) scale(1, 1); }
-}
-@keyframes alert-out {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to   { opacity: 0; transform: translateY(-16px) scale(0.96); }
-}
-
-.alert-image-wrap {
-  flex: 0 0 auto;
-  width: 104px;
-  height: 104px;
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
+@keyframes alert-in { 0% { opacity: 0; transform: translateY(-48px) scale(0.82,1.1); } 55% { opacity: 1; transform: translateY(6px) scale(1.06,0.94); } 100% { opacity: 1; transform: translateY(0) scale(1,1); } }
+@keyframes alert-out { from { opacity: 1; } to { opacity: 0; transform: translateY(-16px) scale(0.96); } }
+.alert-image-wrap { flex: 0 0 auto; width: 104px; height: 104px; display: none; align-items: center; justify-content: center; }
 .alert.has-image .alert-image-wrap { display: flex; }
-#alert-image {
-  max-width: 100%;
-  max-height: 100%;
-  border-radius: 10px;
-  animation: pop 0.7s cubic-bezier(0.15, 0.9, 0.25, 1.4);
-}
-@keyframes pop {
-  0% { transform: scale(0.3); }
-  60% { transform: scale(1.15); }
-  100% { transform: scale(1); }
-}
+#alert-image { max-width: 100%; max-height: 100%; border-radius: 10px; }
+.alert-title { font-size: 22px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+.alert-message { font-size: 34px; font-weight: 800; line-height: 1.12; text-shadow: 0 2px 12px rgba(0,0,0,0.7); }
+.alert-message .hl { color: var(--accent); }
 
-.alert-body { min-width: 0; }
+/* Shared full-screen animation layers. */
+.punch, .pop, .cannon, .rainbow {
+  --accent: #a2cab8; --text: #e1f7f1;
+  position: absolute; inset: 0; display: none; overflow: hidden;
+}
+.punch.show, .pop.show, .rainbow.show { display: flex; align-items: center; justify-content: center; }
+.cannon.show { display: block; }
 
-/* The mint uppercase label, e.g. "NEW SUBSCRIBER" (#A2CAB8 in the original). */
-.alert-title {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 8px;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
-}
-
-/* The big near-white name line (#E1F7F1 NexaBold in the original). */
-.alert-message {
-  font-size: 34px;
-  font-weight: 800;
-  line-height: 1.12;
-  letter-spacing: 0.01em;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
-}
-.alert-message .hl {
-  color: var(--accent);
-}
-
-/* ======================================================================
-   PUNCH STYLE — full-screen centered takeover (subs/resubs/gifts).
-   Recreates the original UI_NewSubAnim: a doors reveal, a hard "punch"
-   impact with a screen flash + shake, big name and "N MONTHS".
-   ====================================================================== */
-.punch {
-  --accent: #a2cab8;
-  --text: #e1f7f1;
-  position: absolute;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.punch.show { display: flex; }
-
-/* White impact flash on the moment of the punch. */
-.punch-flash {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, #ffffff, rgba(255, 255, 255, 0) 60%);
-  opacity: 0;
-}
+/* ===================== PUNCH (subs) ===================== */
+.punch-flash { position: absolute; inset: 0; background: radial-gradient(circle at center, #fff, rgba(255,255,255,0) 60%); opacity: 0; }
 .punch.show .punch-flash { animation: punch-flash 0.5s ease-out forwards; }
-@keyframes punch-flash {
-  0% { opacity: 0; }
-  6% { opacity: 0.95; }
-  100% { opacity: 0; }
-}
-
-/* Accent burst rays behind the text. */
-.punch-rays {
-  position: absolute;
-  width: 180vmax;
-  height: 180vmax;
-  background: repeating-conic-gradient(
-    from 0deg,
-    color-mix(in srgb, var(--accent) 22%, transparent) 0deg 6deg,
-    transparent 6deg 12deg
-  );
-  opacity: 0;
-  transform: scale(0.2);
-}
+@keyframes punch-flash { 0% { opacity: 0; } 6% { opacity: 0.95; } 100% { opacity: 0; } }
+.punch-rays { position: absolute; width: 180vmax; height: 180vmax; opacity: 0; transform: scale(0.2);
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--accent) 22%, transparent) 0deg 6deg, transparent 6deg 12deg); }
 .punch.show .punch-rays { animation: punch-rays 2.6s ease-out forwards; }
-@keyframes punch-rays {
-  0% { opacity: 0; transform: scale(0.2) rotate(0deg); }
-  14% { opacity: 0.7; }
-  100% { opacity: 0; transform: scale(1) rotate(40deg); }
-}
+@keyframes punch-rays { 0% { opacity: 0; transform: scale(0.2) rotate(0); } 14% { opacity: 0.7; } 100% { opacity: 0; transform: scale(1) rotate(40deg); } }
+.punch-shake { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.punch.show .punch-shake { animation: shake 0.5s ease-out 0.28s both; }
+@keyframes shake { 0% { transform: translate(0,0); } 15% { transform: translate(-14px,8px); } 30% { transform: translate(12px,-10px); } 45% { transform: translate(-9px,-6px); } 60% { transform: translate(7px,7px); } 75% { transform: translate(-4px,3px); } 100% { transform: translate(0,0); } }
+.punch-word { font-size: 44px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent);
+  text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 60%, transparent), 0 4px 18px rgba(0,0,0,0.7); transform: scale(0.2); opacity: 0; margin-bottom: 14px; }
+.punch.show .punch-word { animation: slam 0.5s cubic-bezier(0.2,1.4,0.3,1) 0.28s both; }
+/* nameplate: two doors slide in from the sides to frame the name */
+.punch-plate { position: relative; display: flex; align-items: center; justify-content: center; padding: 18px 60px; min-width: 40vw; }
+.punch-door { position: absolute; top: 0; bottom: 0; width: 50%;
+  background: linear-gradient(180deg, rgba(29,38,44,0.97), rgba(19,24,27,0.98));
+  border-top: 3px solid var(--accent); border-bottom: 3px solid var(--accent); }
+.punch-door-l { left: 0; border-left: 3px solid var(--accent); transform: translateX(-115%); }
+.punch-door-r { right: 0; border-right: 3px solid var(--accent); transform: translateX(115%); }
+.punch.show .punch-door-l { animation: door-in-l 0.45s cubic-bezier(0.4,0,0.2,1) 0.28s both; }
+.punch.show .punch-door-r { animation: door-in-r 0.45s cubic-bezier(0.4,0,0.2,1) 0.28s both; }
+@keyframes door-in-l { to { transform: translateX(0); } }
+@keyframes door-in-r { to { transform: translateX(0); } }
+.punch-name { position: relative; z-index: 1; font-size: 116px; line-height: 1; font-weight: 800; color: var(--text);
+  text-shadow: 0 0 40px rgba(0,0,0,0.6), 0 8px 26px rgba(0,0,0,0.75); transform: scale(0.2); opacity: 0; max-width: 88vw; overflow-wrap: anywhere; }
+.punch.show .punch-name { animation: slam 0.55s cubic-bezier(0.2,1.5,0.3,1) 0.5s both; }
+.punch-sub { font-size: 40px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent);
+  text-shadow: 0 3px 14px rgba(0,0,0,0.7); transform: scale(0.4); opacity: 0; margin-top: 14px; }
+.punch.show .punch-sub { animation: slam 0.5s cubic-bezier(0.2,1.35,0.3,1) 0.66s both; }
+@keyframes slam { 0% { transform: scale(2.2); opacity: 0; } 40% { opacity: 1; } 60% { transform: scale(0.92); } 100% { transform: scale(1); opacity: 1; } }
 
-/* Container that shakes on impact. */
-.punch-shake {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-.punch.show .punch-shake { animation: punch-shake 0.5s ease-out 0.28s both; }
-@keyframes punch-shake {
-  0% { transform: translate(0, 0); }
-  15% { transform: translate(-14px, 8px); }
-  30% { transform: translate(12px, -10px); }
-  45% { transform: translate(-9px, -6px); }
-  60% { transform: translate(7px, 7px); }
-  75% { transform: translate(-4px, 3px); }
-  100% { transform: translate(0, 0); }
-}
+/* ===================== POP (follows) ===================== */
+.pop { flex-direction: column; gap: 10px; text-align: center; }
+.pop-badge { width: 130px; height: 130px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 74px; font-weight: 800; color: var(--text);
+  background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--accent) 70%, #1d262c), #13181b);
+  border: 4px solid var(--accent); box-shadow: 0 0 40px -4px var(--accent), 0 12px 40px rgba(0,0,0,0.6);
+  transform: scale(0); }
+.pop.show .pop-badge { animation: pop-badge 0.55s cubic-bezier(0.2,1.6,0.3,1) both; }
+@keyframes pop-badge { 0% { transform: scale(0) rotate(-30deg); } 60% { transform: scale(1.15) rotate(8deg); } 100% { transform: scale(1) rotate(0); } }
+.pop-word { font-size: 26px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); opacity: 0; }
+.pop.show .pop-word { animation: rise 0.4s ease-out 0.35s both; }
+.pop-name { font-size: 64px; font-weight: 800; color: var(--text); text-shadow: 0 6px 22px rgba(0,0,0,0.7); opacity: 0; max-width: 80vw; overflow-wrap: anywhere; }
+.pop.show .pop-name { animation: rise 0.45s cubic-bezier(0.2,1.4,0.3,1) 0.45s both; }
+@keyframes rise { 0% { opacity: 0; transform: translateY(18px) scale(0.9); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
 
-/* Doors that slam open to reveal the name. */
-.punch-doors {
-  position: absolute;
-  inset: -40px -60px;
-  display: flex;
+/* ===================== CANNON (cheers) ===================== */
+.cannon-monster { position: absolute; right: 60px; bottom: -220px; font-size: 190px; line-height: 1; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6)); }
+.cannon.show .cannon-monster { animation: monster-in 3.6s cubic-bezier(0.2,1.3,0.3,1) both; }
+@keyframes monster-in { 0% { bottom: -240px; } 12% { bottom: -30px; } 16% { bottom: -55px; } 20% { bottom: -40px; } 82% { bottom: -40px; } 100% { bottom: -240px; } }
+.cannon-barrel { position: absolute; right: 210px; bottom: 40px; font-size: 90px; transform: rotate(-45deg) scale(0); transform-origin: bottom right; }
+.cannon.show .cannon-barrel { animation: barrel-in 3.6s ease-out both; }
+@keyframes barrel-in { 0% { transform: rotate(-45deg) scale(0); } 14% { transform: rotate(-45deg) scale(1.1); } 20% { transform: rotate(-52deg) scale(1); } 24% { transform: rotate(-45deg) scale(1); } 82% { transform: rotate(-45deg) scale(1); } 100% { transform: rotate(-45deg) scale(0); } }
+.cannon-label { position: absolute; right: 40px; bottom: 250px; text-align: right; opacity: 0; }
+.cannon.show .cannon-label { animation: label-in 3.6s ease-out both; }
+@keyframes label-in { 0%,10% { opacity: 0; transform: translateY(14px); } 18% { opacity: 1; transform: translateY(0); } 82% { opacity: 1; } 100% { opacity: 0; } }
+.cannon-name { font-size: 46px; font-weight: 800; color: var(--text); text-shadow: 0 4px 16px rgba(0,0,0,0.7); }
+.cannon-bits { font-size: 60px; font-weight: 800; color: var(--accent); text-shadow: 0 0 20px color-mix(in srgb, var(--accent) 55%, transparent); }
+.cannon-bag { position: absolute; right: 230px; bottom: 90px; font-size: 84px; opacity: 0; }
+.cannon.show .cannon-bag { animation: bag-fly 1.5s cubic-bezier(0.3,0.1,0.5,1) 0.7s both; }
+@keyframes bag-fly {
+  0% { transform: translate(0,0) scale(0.5) rotate(0); opacity: 0; }
+  8% { opacity: 1; }
+  45% { transform: translate(-42vw,-42vh) scale(1.15) rotate(400deg); }
+  80% { transform: translate(-74vw,-10vh) scale(1) rotate(760deg); opacity: 1; }
+  100% { transform: translate(-80vw,10vh) scale(0.6) rotate(860deg); opacity: 0; }
 }
-.punch-door {
-  flex: 1;
-  background: linear-gradient(180deg, rgba(29, 38, 44, 0.98), rgba(19, 24, 27, 0.98));
-  border-top: 3px solid var(--accent);
-  border-bottom: 3px solid var(--accent);
-}
-.punch-door-l { border-right: 2px solid color-mix(in srgb, var(--accent) 60%, transparent); }
-.punch.show .punch-door-l { animation: door-l 0.5s cubic-bezier(0.5, 0, 0.2, 1) 0.28s both; }
-.punch.show .punch-door-r { animation: door-r 0.5s cubic-bezier(0.5, 0, 0.2, 1) 0.28s both; }
-@keyframes door-l { from { transform: translateX(0); } to { transform: translateX(-105%); } }
-@keyframes door-r { from { transform: translateX(0); } to { transform: translateX(105%); } }
+.cannon-boom { position: absolute; right: 200px; bottom: 70px; width: 260px; height: 260px; transform: translate(50%,50%) scale(0);
+  background: radial-gradient(circle, #fff, color-mix(in srgb, var(--accent) 60%, transparent) 40%, transparent 70%); }
+.cannon.show .cannon-boom { animation: boom 0.5s ease-out 0.62s both; }
+@keyframes boom { 0% { transform: translate(50%,50%) scale(0); opacity: 0.95; } 100% { transform: translate(50%,50%) scale(1.4); opacity: 0; } }
 
-.punch-content {
-  position: relative;
-  padding: 40px 70px;
-  opacity: 0;
-}
-.punch.show .punch-content { animation: punch-content 2.8s ease-out forwards; }
-@keyframes punch-content {
-  0%, 24% { opacity: 0; }
-  30% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* The label word (e.g. "NEW SUBSCRIBER") slams in first. */
-.punch-word {
-  font-size: 44px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent);
-  text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 60%, transparent), 0 4px 18px rgba(0, 0, 0, 0.7);
-  transform: scale(0.2);
-  opacity: 0;
-}
-.punch.show .punch-word { animation: slam 0.5s cubic-bezier(0.2, 1.4, 0.3, 1) 0.28s both; }
-
-/* The giant name. */
-.punch-name {
-  font-size: 128px;
-  line-height: 1;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: 0.01em;
-  margin: 10px 0 6px;
-  text-shadow: 0 0 40px rgba(0, 0, 0, 0.6), 0 8px 26px rgba(0, 0, 0, 0.75);
-  transform: scale(0.2);
-  opacity: 0;
-  max-width: 92vw;
-  overflow-wrap: anywhere;
-}
-.punch.show .punch-name { animation: slam 0.55s cubic-bezier(0.2, 1.5, 0.3, 1) 0.4s both; }
-
-/* The subtitle line ("6 MONTHS" / tier / gifter). */
-.punch-sub {
-  font-size: 40px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--accent);
-  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.7);
-  transform: scale(0.4);
-  opacity: 0;
-}
-.punch.show .punch-sub { animation: slam 0.5s cubic-bezier(0.2, 1.35, 0.3, 1) 0.52s both; }
-
-@keyframes slam {
-  0% { transform: scale(2.2); opacity: 0; }
-  40% { opacity: 1; }
-  60% { transform: scale(0.92); }
-  100% { transform: scale(1); opacity: 1; }
-}
+/* ===================== RAINBOW (raids/hosts) ===================== */
+.rainbow-arc { position: absolute; bottom: 8vh; left: 50%; width: 1400px; height: 700px; transform: translateX(-50%) scale(0.3); opacity: 0;
+  border-radius: 700px 700px 0 0;
+  background:
+    radial-gradient(circle at 50% 100%,
+      transparent 0 40%,
+      #e5484d 40% 44%, #f2711c 44% 48%, #ffd21e 48% 52%,
+      #46a758 52% 56%, #3b82f6 56% 60%, #8b5cf6 60% 64%, transparent 64%);
+  filter: saturate(1.1); }
+.rainbow.show .rainbow-arc { animation: arc-in 3.4s cubic-bezier(0.2,1.2,0.3,1) both; }
+@keyframes arc-in { 0% { opacity: 0; transform: translateX(-50%) scale(0.3); } 20% { opacity: 0.9; transform: translateX(-50%) scale(1.04); } 30% { transform: translateX(-50%) scale(1); } 85% { opacity: 0.9; } 100% { opacity: 0; transform: translateX(-50%) scale(1.05); } }
+.rainbow-sparkles { position: absolute; inset: 0; pointer-events: none; }
+.rainbow-sparkles .spk { position: absolute; font-size: 40px; opacity: 0; animation: twinkle 1.4s ease-in-out infinite; }
+@keyframes twinkle { 0%,100% { opacity: 0; transform: scale(0.5); } 50% { opacity: 1; transform: scale(1.15); } }
+.rainbow-content { position: relative; z-index: 1; text-align: center; }
+.rainbow-word { font-size: 40px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent);
+  text-shadow: 0 0 22px color-mix(in srgb, var(--accent) 55%, transparent); opacity: 0; }
+.rainbow.show .rainbow-word { animation: slam 0.5s cubic-bezier(0.2,1.4,0.3,1) 0.25s both; }
+.rainbow-name { font-size: 110px; line-height: 1; font-weight: 800; color: var(--text); margin: 8px 0;
+  text-shadow: 0 8px 26px rgba(0,0,0,0.75); opacity: 0; max-width: 88vw; overflow-wrap: anywhere; }
+.rainbow.show .rainbow-name { animation: slam 0.55s cubic-bezier(0.2,1.5,0.3,1) 0.4s both; }
+.rainbow-sub { font-size: 40px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); opacity: 0; }
+.rainbow.show .rainbow-sub { animation: slam 0.5s cubic-bezier(0.2,1.35,0.3,1) 0.55s both; }
