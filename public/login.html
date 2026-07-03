@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Twitch Alerts — Login</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(1200px 600px at 50% -200px, #1c1730, #0e0c15);
+        color: #eceaf3;
+        font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      }
+      .box {
+        width: 340px;
+        background: #17141f;
+        border: 1px solid #2c2740;
+        border-radius: 16px;
+        padding: 28px;
+      }
+      .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+      .brand h1 { font-size: 20px; margin: 0; }
+      .dot { width: 12px; height: 12px; border-radius: 50%; background: #9147ff; box-shadow: 0 0 14px #9147ff; }
+      p.hint { color: #9a94ad; font-size: 13px; margin: 4px 0 18px; }
+      input {
+        width: 100%;
+        background: #1f1b2b;
+        border: 1px solid #2c2740;
+        color: #eceaf3;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 15px;
+        margin-bottom: 12px;
+      }
+      button {
+        width: 100%;
+        cursor: pointer;
+        border-radius: 10px;
+        border: none;
+        padding: 12px;
+        font-size: 15px;
+        font-weight: 700;
+        background: #9147ff;
+        color: white;
+      }
+      button:hover { filter: brightness(1.1); }
+      .err { color: #ff5c5c; font-size: 13px; min-height: 18px; margin-top: 10px; }
+    </style>
+  </head>
+  <body>
+    <form class="box" id="form">
+      <div class="brand"><span class="dot"></span><h1>Twitch Alerts</h1></div>
+      <p class="hint">Enter the admin password to open the dashboard.</p>
+      <input id="password" type="password" placeholder="Password" autocomplete="current-password" autofocus />
+      <button type="submit">Log in</button>
+      <div class="err" id="err"></div>
+    </form>
+    <script>
+      const form = document.getElementById("form");
+      const err = document.getElementById("err");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        err.textContent = "";
+        const password = document.getElementById("password").value;
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password })
+        });
+        if (res.ok) {
+          window.location.href = "/";
+        } else {
+          const data = await res.json().catch(() => ({}));
+          err.textContent = data.error || "Login failed";
+        }
+      });
+    </script>
+  </body>
+</html>

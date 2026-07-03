@@ -31,6 +31,7 @@ header {
   backdrop-filter: blur(8px);
   z-index: 5;
 }
+.header-right { display: flex; align-items: center; gap: 12px; }
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand h1 { font-size: 20px; margin: 0; }
 .dot {

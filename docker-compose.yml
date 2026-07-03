@@ -6,6 +6,9 @@ services:
     environment:
       # Optional: set your channel here instead of the settings page.
       # TWITCH_CHANNEL: your_channel
+      # Recommended for public deploys: password-protect the dashboard.
+      # The overlay URL stays open so OBS can load it.
+      # ADMIN_PASSWORD: change-me
       PORT: 3000
       CONFIG_PATH: /data/config.json
     volumes:

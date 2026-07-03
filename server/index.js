@@ -16,6 +16,96 @@ const FOLLOW_SCOPE = "moderator:read:followers";
 const app = express();
 app.set("trust proxy", true);
 app.use(express.json({ limit: "1mb" }));
+
+// --- Password protection -------------------------------------------------
+// Protects the settings page and the config/test/auth APIs. The overlay and
+// its WebSocket stay open so OBS can load them without credentials. Auth is
+// enabled only when ADMIN_PASSWORD is set — local (localhost) use needs no
+// password; set it on public deployments (Coolify) to lock the dashboard.
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+const authEnabled = () => ADMIN_PASSWORD.length > 0;
+const SESSION_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
+const sessions = new Map(); // token -> createdAt
+
+// Paths reachable without logging in.
+const OPEN_PATHS = new Set([
+  "/overlay.html",
+  "/overlay.js",
+  "/overlay.css",
+  "/login",
+  "/api/login",
+  "/favicon.ico"
+]);
+
+function parseCookies(req) {
+  const out = {};
+  const header = req.headers.cookie;
+  if (!header) return out;
+  for (const part of header.split(";")) {
+    const idx = part.indexOf("=");
+    if (idx === -1) continue;
+    out[part.slice(0, idx).trim()] = decodeURIComponent(part.slice(idx + 1).trim());
+  }
+  return out;
+}
+
+function isAuthed(req) {
+  const token = parseCookies(req).sid;
+  if (!token) return false;
+  const created = sessions.get(token);
+  if (!created) return false;
+  if (Date.now() - created > SESSION_TTL) {
+    sessions.delete(token);
+    return false;
+  }
+  return true;
+}
+
+function timingSafeEqual(a, b) {
+  const ab = Buffer.from(String(a));
+  const bb = Buffer.from(String(b));
+  if (ab.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ab, bb);
+}
+
+app.use((req, res, next) => {
+  if (!authEnabled()) return next();
+  if (OPEN_PATHS.has(req.path)) return next();
+  if (isAuthed(req)) return next();
+  if (req.path.startsWith("/api/") || req.path.startsWith("/auth/")) {
+    return res.status(401).json({ error: "unauthorized" });
+  }
+  return res.redirect("/login");
+});
+
+app.get("/login", (req, res) => {
+  if (!authEnabled() || isAuthed(req)) return res.redirect("/");
+  res.sendFile(join(PUBLIC_DIR, "login.html"));
+});
+
+app.post("/api/login", (req, res) => {
+  if (!authEnabled()) return res.json({ ok: true });
+  const password = (req.body && req.body.password) || "";
+  if (!timingSafeEqual(password, ADMIN_PASSWORD)) {
+    return res.status(401).json({ ok: false, error: "Incorrect password" });
+  }
+  const token = crypto.randomBytes(24).toString("hex");
+  sessions.set(token, Date.now());
+  const secure = req.secure ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `sid=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_TTL / 1000}${secure}`
+  );
+  res.json({ ok: true });
+});
+
+app.post("/api/logout", (req, res) => {
+  const token = parseCookies(req).sid;
+  if (token) sessions.delete(token);
+  res.setHeader("Set-Cookie", "sid=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0");
+  res.json({ ok: true });
+});
+
 app.get("/", (req, res) => res.sendFile(join(PUBLIC_DIR, "settings.html")));
 app.get("/favicon.ico", (req, res) => res.status(204).end());
 app.use(express.static(PUBLIC_DIR));
@@ -108,6 +198,7 @@ app.get("/api/status", (req, res) => {
     follows: eventsub.getStatus(),
     redirectUri: redirectUri(req),
     scope: FOLLOW_SCOPE,
+    authEnabled: authEnabled(),
     configPath: getConfigPath()
   });
 });

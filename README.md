@@ -64,7 +64,8 @@ The repo ships a `Dockerfile` and `docker-compose.yml`.
   `Dockerfile`. Expose port `3000`, and add a persistent volume mounted at
   `/data` so your settings survive restarts (config is written to
   `/data/config.json` via the `CONFIG_PATH` env var). Optionally set
-  `TWITCH_CHANNEL` to pre-fill your channel.
+  `TWITCH_CHANNEL` to pre-fill your channel. **Set `ADMIN_PASSWORD`** to
+  protect the dashboard (see below).
 - **Plain Docker:**
 
   ```bash
@@ -73,6 +74,21 @@ The repo ships a `Dockerfile` and `docker-compose.yml`.
 
 Then point your OBS Browser Source at
 `https://your-domain/overlay.html`.
+
+## Password protection
+
+Set the `ADMIN_PASSWORD` environment variable to require a login for the
+settings dashboard and its config/test/auth APIs. The **overlay URL and its
+WebSocket stay open** (unauthenticated) so OBS can always load them.
+
+- **Local:** leave it unset — the app is bound to your machine anyway, so no
+  password is needed.
+- **Public / Coolify:** set `ADMIN_PASSWORD` so only you can reach the
+  dashboard. Anyone with the overlay URL can still display alerts, but they
+  can't change your settings or fire tests.
+
+When set, visiting the dashboard shows a login page; a session cookie keeps you
+logged in for 30 days, and there's a **Log out** button in the header.
 
 ## Configuration
 

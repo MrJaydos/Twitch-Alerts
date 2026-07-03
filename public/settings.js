@@ -15,6 +15,11 @@ let config = null;
 
 async function api(path, opts) {
   const res = await fetch(path, opts);
+  if (res.status === 401) {
+    // Session expired or not logged in — bounce to the login page.
+    window.location.href = "/login";
+    throw new Error("unauthorized");
+  }
   if (!res.ok) throw new Error(`${path} -> ${res.status}`);
   return res.json();
 }
@@ -118,6 +123,8 @@ async function refreshStatus() {
       node.className = "status";
     }
 
+    el("#logout").style.display = s.authEnabled ? "" : "none";
+
     // Redirect URL for the Twitch app (built from how you're reaching this page).
     if (s.redirectUri) el("#redirect-uri").value = s.redirectUri;
 
@@ -183,6 +190,10 @@ async function init() {
     setTimeout(() => (el("#copy-url").textContent = "Copy"), 1500);
   });
   el("#save").addEventListener("click", save);
+  el("#logout").addEventListener("click", async () => {
+    await fetch("/api/logout", { method: "POST" });
+    window.location.href = "/login";
+  });
 
   // Twitch / follow-alert connection
   const tw = config.twitch || {};
