@@ -101,6 +101,47 @@ function playSoundFor(style) {
   }
 }
 
+// ---- Text-to-speech ------------------------------------------------------
+function fillTemplate(t, event) {
+  const vars = {
+    name: event.name ?? "", gifter: event.gifter ?? "", recipient: event.recipient ?? event.name ?? "",
+    months: event.months ?? "", streak: event.streak ?? "", tier: event.tier ?? "",
+    bits: event.bits ?? "", viewers: event.viewers ?? "", count: event.count ?? "",
+    message: cleanCheermotes(event.message ?? "")
+  };
+  return t.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : "")).replace(/\s+/g, " ").trim();
+}
+// Drop cheermote tokens like "cheer500" / "Kappa100" from a chat message.
+function cleanCheermotes(s) {
+  return s.split(/\s+/).filter((w) => !/^[A-Za-z]+\d+$/.test(w)).join(" ");
+}
+let ttsAudio = null;
+function speak(text, tts) {
+  if (!text) return;
+  const clipped = text.slice(0, tts.maxLength || 200);
+  try {
+    if (tts.provider === "browser" && window.speechSynthesis) {
+      const u = new SpeechSynthesisUtterance(clipped);
+      u.volume = tts.volume ?? 1;
+      window.speechSynthesis.speak(u);
+    } else {
+      // StreamElements speech API returns an MP3 (works inside OBS's browser).
+      const voice = encodeURIComponent(tts.voice || "Brian");
+      const url = `https://api.streamelements.com/kappa/v2/speech?voice=${voice}&text=${encodeURIComponent(clipped)}`;
+      ttsAudio = new Audio(url);
+      ttsAudio.volume = tts.volume ?? 1;
+      ttsAudio.play().catch(() => {});
+    }
+  } catch {
+    /* tts unavailable */
+  }
+}
+function maybeSpeak(event, style, tts) {
+  if (!style.tts || !tts || tts.provider === "off") return;
+  const text = fillTemplate(style.ttsTemplate || style.message || "", event);
+  if (text) setTimeout(() => speak(text, tts), 700); // let the alert sound land first
+}
+
 // ---- Helpers -------------------------------------------------------------
 function renderMessage(template, event) {
   const vars = {
@@ -203,9 +244,10 @@ const RENDERERS = { punch: playPunch, pop: playPop, cannon: playCannon, rainbow:
 function playNext() {
   if (playing || queue.length === 0) return;
   playing = true;
-  const { event, style } = queue.shift();
+  const { event, style, tts } = queue.shift();
   const finish = () => { playing = false; playNext(); };
   (RENDERERS[style.style] || playBanner)(event, style, finish);
+  maybeSpeak(event, style, tts);
 }
 
 function connect() {

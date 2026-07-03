@@ -47,6 +47,8 @@ function renderAlertCards() {
     el(".f-accentColor", node).value = a.accentColor || "#9147ff";
     el(".f-textColor", node).value = a.textColor || "#ffffff";
     el(".f-soundVolume", node).value = a.soundVolume ?? 0.7;
+    el(".f-tts", node).checked = a.tts === true;
+    el(".f-ttsTemplate", node).value = a.ttsTemplate || "";
     el(".f-image", node).value = a.image || "";
     el(".f-sound", node).value = a.sound || "";
 
@@ -76,9 +78,16 @@ function collectFromDom() {
     a.accentColor = el(".f-accentColor", card).value;
     a.textColor = el(".f-textColor", card).value;
     a.soundVolume = Number(el(".f-soundVolume", card).value);
+    a.tts = el(".f-tts", card).checked;
+    a.ttsTemplate = el(".f-ttsTemplate", card).value;
     a.image = el(".f-image", card).value.trim();
     a.sound = el(".f-sound", card).value.trim();
   }
+  config.tts = config.tts || {};
+  config.tts.provider = el("#tts-provider").value;
+  config.tts.voice = el("#tts-voice").value.trim() || "Brian";
+  config.tts.volume = Number(el("#tts-volume").value);
+  config.tts.maxLength = Number(el("#tts-maxlen").value) || 200;
 }
 
 async function save() {
@@ -220,9 +229,86 @@ async function init() {
   }
   if (q.get("follow")) history.replaceState(null, "", location.pathname);
 
+  // Text-to-speech
+  const tts = config.tts || {};
+  el("#tts-provider").value = tts.provider || "streamelements";
+  el("#tts-voice").value = tts.voice || "Brian";
+  el("#tts-volume").value = tts.volume ?? 1;
+  el("#tts-maxlen").value = tts.maxLength || 200;
+
+  // Live events monitor + raw replay
+  el("#events-refresh").addEventListener("click", refreshEvents);
+  el("#replay-btn").addEventListener("click", replayLine);
+
   renderAlertCards();
   refreshStatus();
+  refreshEvents();
   setInterval(refreshStatus, 5000);
+  setInterval(refreshEvents, 4000);
+}
+
+const REL_TIME = (t) => {
+  const s = Math.round((Date.now() - t) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.round(s / 60)}m ago`;
+  return new Date(t).toLocaleTimeString();
+};
+
+async function refreshEvents() {
+  let data;
+  try {
+    data = await api("/api/events");
+  } catch {
+    return;
+  }
+  const list = el("#events-list");
+  if (!data.events || data.events.length === 0) {
+    list.innerHTML = '<div class="events-empty">No events yet.</div>';
+    return;
+  }
+  list.innerHTML = data.events
+    .map((e) => {
+      const cls = e.fired ? "" : " notfired";
+      const name = e.name ? `<span class="event-name">${escapeHtml(e.name)}</span>` : "";
+      const detail = e.detail ? `<span class="event-detail">${escapeHtml(e.detail)}</span>` : "";
+      return `<div class="event-row${cls}">
+        <span class="event-time">${REL_TIME(e.time)}</span>
+        <span class="event-type">${escapeHtml(e.type)}</span>
+        ${name}${detail}
+        <span class="event-src">${escapeHtml(e.source)}</span>
+      </div>`;
+    })
+    .join("");
+}
+
+async function replayLine() {
+  const line = el("#replay-line").value.trim();
+  const msg = el("#replay-msg");
+  if (!line) {
+    msg.textContent = "Paste a raw IRC line first.";
+    return;
+  }
+  try {
+    const res = await api("/api/replay", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ line })
+    });
+    msg.textContent = res.parsed
+      ? `Fired ${res.parsed.type} for ${res.parsed.name} ✓`
+      : "Parsed, but it matched no alert type.";
+    msg.style.color = res.parsed ? "var(--accent-2)" : "var(--muted)";
+    refreshEvents();
+  } catch (err) {
+    msg.textContent = "Replay failed: " + err.message;
+    msg.style.color = "#ff5c5c";
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
 }
 
 init();

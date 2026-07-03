@@ -32,6 +32,17 @@ export const DEFAULT_CONFIG = {
   },
   // When true, gifted-sub alerts use the `sub` alert styling.
   treatGiftedAsSub: true,
+  // Text-to-speech, spoken by the overlay after an alert fires.
+  //   provider: "streamelements" (plays an MP3 from StreamElements' speech API,
+  //             works inside OBS's browser source), "browser" (Web Speech API,
+  //             may be silent in OBS), or "off".
+  //   voice:    StreamElements voice name (Brian is the classic Twitch TTS).
+  tts: {
+    provider: "streamelements",
+    voice: "Brian",
+    volume: 1,
+    maxLength: 200
+  },
   alerts: {
     follow: {
       enabled: true,
@@ -39,6 +50,8 @@ export const DEFAULT_CONFIG = {
       duration: 6000,
       title: "New Follower",
       message: "{name} just followed!",
+      tts: false,
+      ttsTemplate: "{name} just followed",
       accentColor: "#5ec8c8",
       textColor: "#e1f7f1",
       image: "",
@@ -51,6 +64,8 @@ export const DEFAULT_CONFIG = {
       duration: 7000,
       title: "New Subscriber",
       message: "{name} subscribed at Tier {tier}!",
+      tts: true,
+      ttsTemplate: "{name} just subscribed",
       accentColor: "#a2cab8",
       textColor: "#e1f7f1",
       image: "",
@@ -63,6 +78,8 @@ export const DEFAULT_CONFIG = {
       duration: 7000,
       title: "Resub",
       message: "{name} resubscribed for {months} months!",
+      tts: true,
+      ttsTemplate: "{name} resubscribed for {months} months",
       accentColor: "#a2cab8",
       textColor: "#e1f7f1",
       image: "",
@@ -75,6 +92,8 @@ export const DEFAULT_CONFIG = {
       duration: 7000,
       title: "Gifted Sub",
       message: "{gifter} gifted a sub to {name}!",
+      tts: true,
+      ttsTemplate: "{gifter} gifted a sub to {name}",
       accentColor: "#a2cab8",
       textColor: "#e1f7f1",
       image: "",
@@ -87,6 +106,8 @@ export const DEFAULT_CONFIG = {
       duration: 8000,
       title: "Gift Bomb",
       message: "{gifter} is gifting {count} subs to the community!",
+      tts: true,
+      ttsTemplate: "{gifter} gifted {count} subs to the community",
       accentColor: "#a2cab8",
       textColor: "#e1f7f1",
       image: "",
@@ -99,6 +120,8 @@ export const DEFAULT_CONFIG = {
       duration: 7000,
       title: "Bits",
       message: "{name} cheered {bits} bits!",
+      tts: true,
+      ttsTemplate: "{name} cheered {bits} bits. {message}",
       accentColor: "#a06ce6",
       textColor: "#e1f7f1",
       image: "",
@@ -111,6 +134,8 @@ export const DEFAULT_CONFIG = {
       duration: 8000,
       title: "Raid",
       message: "{name} raided with {viewers} viewers!",
+      tts: false,
+      ttsTemplate: "{name} raided with {viewers} viewers",
       accentColor: "#f0b24a",
       textColor: "#e1f7f1",
       image: "",

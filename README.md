@@ -103,6 +103,50 @@ fanfare — no files needed); set a Sound URL to override it. Punch/rainbow
 subtitles and the cheer bits come straight from the event; the Message field
 applies to the banner style.
 
+## Text-to-speech
+
+Subs and bits are spoken aloud by default (toggle "Speak this alert" per type,
+and set the phrase in "TTS phrase"). The **Text-to-speech** card picks the
+engine:
+
+- **StreamElements** *(default, recommended for OBS)* — plays the voice as an
+  MP3 (the classic `Brian` voice by default). Works inside OBS's browser source
+  and needs internet on the machine running OBS. The request goes from the
+  overlay directly to StreamElements, so it works no matter where the app is
+  hosted.
+- **Browser voice** — the Web Speech API. Fine in a normal browser but often
+  silent inside OBS.
+- **Off.**
+
+Cheermote codes (e.g. `cheer100`) are stripped from spoken cheer messages, and
+speech is capped at "Max characters".
+
+## Live events & testing
+
+The **Live events** panel on the dashboard lists everything the app has
+received — subs, cheers, raids, follows — whether or not they fired (skipped
+ones are dimmed), with the source (`twitch` / `test` / `replay`). It refreshes
+every few seconds, so you can catch an alert you missed or confirm the live
+pipeline end-to-end.
+
+Ways to test:
+
+- **Test buttons** (per alert) — fire a fake event through the real overlay
+  path. Proves rendering/positioning in OBS.
+- **Replay a raw line** — paste a real Twitch IRC `USERNOTICE` line and it runs
+  through the *exact* parser and overlay a live event uses. Proves the parsing
+  logic against real payloads.
+- **Real events** — the ultimate check: a friend/alt follows, or you gift a sub
+  / cheer / raid from another account. These flow in over chat/EventSub like any
+  live event and show up in the monitor.
+
+## Caching note
+
+The app sends `no-cache` headers for the overlay/settings HTML/JS/CSS, so
+updates show up without stale caching. If OBS ever still shows an old version,
+right-click the Browser Source → **Refresh**. Fonts and images are cached for a
+week (they don't change).
+
 ## Design
 
 The overlay's look is taken from the original LachhhTools Flash source

@@ -7,6 +7,7 @@ import crypto from "node:crypto";
 import { loadConfig, saveConfig, getConfigPath } from "./config.js";
 import { TwitchChat } from "./twitchChat.js";
 import { EventSub } from "./eventsub.js";
+import { parseLine, toAlert } from "./ircParser.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = join(__dirname, "..", "public");
@@ -78,9 +79,18 @@ app.use((req, res, next) => {
   return res.redirect("/login");
 });
 
+// The overlay/settings/login markup changes with every update, and OBS's
+// browser source caches hard — so never let HTML/JS/CSS be cached. Fonts and
+// images are content-stable and can cache.
+const NO_CACHE = "no-cache, no-store, must-revalidate";
+function sendPage(res, file) {
+  res.set("Cache-Control", NO_CACHE);
+  res.sendFile(join(PUBLIC_DIR, file));
+}
+
 app.get("/login", (req, res) => {
   if (!authEnabled() || isAuthed(req)) return res.redirect("/");
-  res.sendFile(join(PUBLIC_DIR, "login.html"));
+  sendPage(res, "login.html");
 });
 
 app.post("/api/login", (req, res) => {
@@ -106,9 +116,19 @@ app.post("/api/logout", (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/", (req, res) => res.sendFile(join(PUBLIC_DIR, "settings.html")));
+app.get("/", (req, res) => sendPage(res, "settings.html"));
 app.get("/favicon.ico", (req, res) => res.status(204).end());
-app.use(express.static(PUBLIC_DIR));
+app.use(
+  express.static(PUBLIC_DIR, {
+    setHeaders(res, filePath) {
+      if (/\.(html|js|css)$/i.test(filePath)) {
+        res.set("Cache-Control", NO_CACHE);
+      } else if (/\.(woff2?|png|jpe?g|gif|svg|mp3|ogg)$/i.test(filePath)) {
+        res.set("Cache-Control", "public, max-age=604800");
+      }
+    }
+  })
+);
 
 const server = http.createServer(app);
 
@@ -136,12 +156,43 @@ function resolveAlert(event, config) {
   return { block, styleKey: key };
 }
 
-function handleAlert(event) {
+// Recent-events monitor: a ring buffer of every alert the server has seen
+// (fired or not), so the dashboard can show what's coming through — handy for
+// catching an event you missed or confirming the live pipeline works.
+const eventLog = [];
+const EVENT_LOG_MAX = 60;
+function recordEvent(entry) {
+  eventLog.push({ id: crypto.randomUUID(), ...entry });
+  if (eventLog.length > EVENT_LOG_MAX) eventLog.shift();
+}
+function eventDetail(e) {
+  switch (e.type) {
+    case "sub": return `tier ${e.tier}`;
+    case "resub": return `${e.months} months · tier ${e.tier}`;
+    case "giftsub": return `from ${e.gifter}`;
+    case "giftbomb": return `${e.count} subs from ${e.gifter}`;
+    case "cheer": return `${e.bits} bits`;
+    case "raid": return `${e.viewers} viewers`;
+    default: return "";
+  }
+}
+
+function handleAlert(event, source = "twitch") {
   const config = loadConfig();
   const { block, styleKey } = resolveAlert(event, config);
-  if (!block || block.enabled === false) return;
-  broadcast({ kind: "alert", event, style: block, styleKey });
-  console.log(`[alert] ${event.type}:`, event.name);
+  const fired = !!(block && block.enabled !== false);
+  recordEvent({
+    time: Date.now(),
+    type: event.type,
+    name: event.name,
+    detail: eventDetail(event),
+    source,
+    fired,
+    raw: event.rawLine || null
+  });
+  if (!fired) return;
+  broadcast({ kind: "alert", event, style: block, styleKey, tts: config.tts });
+  console.log(`[alert] ${event.type} (${source}):`, event.name);
 }
 
 const chat = new TwitchChat(handleAlert);
@@ -290,8 +341,36 @@ app.post("/auth/disconnect", (req, res) => {
 app.post("/api/test", (req, res) => {
   const type = (req.body && req.body.type) || "sub";
   const event = buildTestEvent(type, req.body || {});
-  handleAlert(event);
+  handleAlert(event, "test");
   res.json({ ok: true, event });
+});
+
+// Recent events for the dashboard monitor (most recent first).
+app.get("/api/events", (req, res) => {
+  res.json({ events: eventLog.slice().reverse() });
+});
+
+// Replay a raw Twitch IRC line through the exact live parse + render path.
+// Lets you confirm real Twitch payloads parse and fire correctly. Body: { line }
+app.post("/api/replay", (req, res) => {
+  const line = ((req.body && req.body.line) || "").trim();
+  if (!line) return res.status(400).json({ ok: false, error: "No line provided" });
+  let alert = null;
+  try {
+    alert = toAlert(parseLine(line));
+  } catch (err) {
+    return res.status(400).json({ ok: false, error: "Parse error: " + err.message });
+  }
+  if (!alert) {
+    recordEvent({
+      time: Date.now(), type: "unrecognized", name: "—",
+      detail: "line matched no alert", source: "replay", fired: false, raw: line
+    });
+    return res.json({ ok: true, parsed: null });
+  }
+  alert.rawLine = line;
+  handleAlert(alert, "replay");
+  res.json({ ok: true, parsed: { type: alert.type, name: alert.name } });
 });
 
 function buildTestEvent(type, overrides) {

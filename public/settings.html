@@ -76,6 +76,49 @@
         </div>
       </section>
 
+      <section class="card">
+        <h2>Text-to-speech</h2>
+        <p class="hint">
+          Spoken after an alert fires, for alerts with "Speak this alert" ticked
+          below (subs and bits by default). StreamElements' voices play as audio
+          and work inside OBS; the browser voice may be silent in OBS.
+        </p>
+        <div class="grid">
+          <label>Engine
+            <select id="tts-provider">
+              <option value="streamelements">StreamElements (recommended for OBS)</option>
+              <option value="browser">Browser voice (Web Speech)</option>
+              <option value="off">Off</option>
+            </select>
+          </label>
+          <label>Voice (StreamElements)<input type="text" id="tts-voice" placeholder="Brian" /></label>
+          <label>Volume<input type="range" id="tts-volume" min="0" max="1" step="0.05" /></label>
+          <label>Max characters<input type="number" id="tts-maxlen" min="20" step="10" /></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Live events</h2>
+          <button id="events-refresh" class="ghost" type="button">Refresh</button>
+        </div>
+        <p class="hint">
+          Everything the app has received (fired or not) — so you can catch an
+          event you missed or confirm the live pipeline works. Updates every few
+          seconds while this page is open.
+        </p>
+        <div id="events-list" class="events-list"><div class="events-empty">No events yet.</div></div>
+        <div class="replay">
+          <label class="wide">Replay a raw Twitch IRC line (runs through the real parser + overlay)
+            <textarea id="replay-line" rows="2" placeholder="@badge-info=;msg-id=sub;msg-param-sub-plan=1000;display-name=SomeUser… :tmi.twitch.tv USERNOTICE #channel"></textarea>
+          </label>
+          <div class="replay-actions">
+            <span id="replay-msg" class="hint"></span>
+            <button id="replay-btn" class="ghost" type="button">Replay line</button>
+          </div>
+        </div>
+      </section>
+
       <section id="alerts"></section>
 
       <div class="save-bar">
@@ -112,6 +155,8 @@
           <label>Accent colour<input type="color" class="f-accentColor" /></label>
           <label>Text colour<input type="color" class="f-textColor" /></label>
           <label>Sound volume<input type="range" class="f-soundVolume" min="0" max="1" step="0.05" /></label>
+          <label class="inline-check">Speak this alert (TTS)<input type="checkbox" class="f-tts" /></label>
+          <label class="wide">TTS phrase<input type="text" class="f-ttsTemplate" placeholder="{name} just subscribed" /></label>
           <label class="wide">Image URL<input type="text" class="f-image" placeholder="https://…/sub.gif" /></label>
           <label class="wide">Sound URL<input type="text" class="f-sound" placeholder="https://…/sub.mp3" /></label>
         </div>

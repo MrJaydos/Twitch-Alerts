@@ -71,7 +71,10 @@ export class TwitchChat {
         }
         try {
           const alert = toAlert(parseLine(line));
-          if (alert) this.onAlert(alert);
+          if (alert) {
+            alert.rawLine = line;
+            this.onAlert(alert, "twitch");
+          }
         } catch (err) {
           console.error("[chat] parse error:", err.message, "\n  line:", line);
         }
