@@ -74,7 +74,8 @@ export const DEFAULT_CONFIG = {
       textColor: "#e1f7f1",
       image: "",
       sound: "",
-      soundVolume: 0.6
+      soundVolume: 0.6,
+      variations: []
     },
     sub: {
       enabled: true,
@@ -88,7 +89,8 @@ export const DEFAULT_CONFIG = {
       textColor: "#e1f7f1",
       image: "",
       sound: "",
-      soundVolume: 0.7
+      soundVolume: 0.7,
+      variations: []
     },
     resub: {
       enabled: true,
@@ -102,7 +104,8 @@ export const DEFAULT_CONFIG = {
       textColor: "#e1f7f1",
       image: "",
       sound: "",
-      soundVolume: 0.7
+      soundVolume: 0.7,
+      variations: []
     },
     giftsub: {
       enabled: true,
@@ -116,7 +119,8 @@ export const DEFAULT_CONFIG = {
       textColor: "#e1f7f1",
       image: "",
       sound: "",
-      soundVolume: 0.7
+      soundVolume: 0.7,
+      variations: []
     },
     giftbomb: {
       enabled: true,
@@ -130,7 +134,8 @@ export const DEFAULT_CONFIG = {
       textColor: "#e1f7f1",
       image: "",
       sound: "",
-      soundVolume: 0.8
+      soundVolume: 0.8,
+      variations: []
     },
     cheer: {
       enabled: true,
@@ -144,7 +149,8 @@ export const DEFAULT_CONFIG = {
       textColor: "#e1f7f1",
       image: "",
       sound: "",
-      soundVolume: 0.7
+      soundVolume: 0.7,
+      variations: []
     },
     raid: {
       enabled: true,
@@ -158,9 +164,34 @@ export const DEFAULT_CONFIG = {
       textColor: "#e1f7f1",
       image: "",
       sound: "",
-      soundVolume: 0.8
+      soundVolume: 0.8,
+      variations: []
+    },
+    // Fires the first time a viewer ever chats (Twitch's first-message flag).
+    firstchat: {
+      enabled: false,
+      style: "banner",
+      duration: 6000,
+      title: "First Message",
+      message: "{name} is chatting for the first time!",
+      tts: false,
+      ttsTemplate: "Welcome {name}",
+      accentColor: "#ff8ac2",
+      textColor: "#e1f7f1",
+      image: "",
+      sound: "",
+      soundVolume: 0.5,
+      variations: []
     }
-  }
+  },
+  // Session goal bars shown on /goals.html. `current` auto-increments on the
+  // matching events and is persisted; reset it from the settings page.
+  goals: {
+    subs: { enabled: false, label: "Sub Goal", current: 0, target: 50 },
+    follows: { enabled: false, label: "Follower Goal", current: 0, target: 100 }
+  },
+  // Logins of raiders we've seen before (for "welcome back" on returning raids).
+  seenRaiders: []
 };
 
 function deepMerge(base, override) {

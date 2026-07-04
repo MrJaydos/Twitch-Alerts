@@ -159,6 +159,29 @@
         </div>
       </section>
 
+      <section class="card">
+        <h2>Goal bars</h2>
+        <p class="hint">
+          Session progress bars. Add <strong>/goals.html</strong> as its own OBS
+          Browser Source. Counts auto-increment on live events (subs count subs +
+          gifts; follows count follows) and persist; reset them here.
+        </p>
+        <div class="row">
+          <input id="goals-url" type="text" readonly />
+          <button id="copy-goals-url" class="ghost">Copy</button>
+        </div>
+        <div class="grid" style="margin-top:12px">
+          <label class="inline-check">Show sub goal<input type="checkbox" id="goal-subs-enabled" /></label>
+          <label class="inline-check">Show follower goal<input type="checkbox" id="goal-follows-enabled" /></label>
+          <label>Sub goal label<input type="text" id="goal-subs-label" /></label>
+          <label>Follower goal label<input type="text" id="goal-follows-label" /></label>
+          <label>Sub goal — current<input type="number" id="goal-subs-current" min="0" /></label>
+          <label>Follower goal — current<input type="number" id="goal-follows-current" min="0" /></label>
+          <label>Sub goal — target<input type="number" id="goal-subs-target" min="1" /></label>
+          <label>Follower goal — target<input type="number" id="goal-follows-target" min="1" /></label>
+        </div>
+      </section>
+
       <section id="alerts"></section>
 
       <div class="save-bar">
@@ -197,8 +220,11 @@
           <label>Sound volume<input type="range" class="f-soundVolume" min="0" max="1" step="0.05" /></label>
           <label class="inline-check">Speak this alert (TTS)<input type="checkbox" class="f-tts" /></label>
           <label class="wide">TTS phrase<input type="text" class="f-ttsTemplate" placeholder="{name} just subscribed" /></label>
-          <label class="wide">Image URL<input type="text" class="f-image" placeholder="https://…/sub.gif" /></label>
-          <label class="wide">Sound URL<input type="text" class="f-sound" placeholder="https://…/sub.mp3" /></label>
+          <label class="wide">Image URL<input type="text" class="f-image" placeholder="https://…/sub.gif  (use a | b to pick at random)" /></label>
+          <label class="wide">Sound URL<input type="text" class="f-sound" placeholder="https://…/sub.mp3  (use a | b to pick at random)" /></label>
+          <label class="wide variations-field">Variations — one per line: <code>min | accent | image | sound | title</code>
+            <textarea class="f-variations" rows="2" placeholder="1000 | #ffd700 | https://…/big.gif | https://…/big.mp3 | HUGE CHEER!"></textarea>
+          </label>
         </div>
         <p class="tokens"></p>
       </section>

@@ -8,7 +8,14 @@ const ALERT_META = {
   giftsub: { label: "Gifted Sub", tokens: "{gifter} {name} {recipient} {tier}" },
   giftbomb: { label: "Gift Bomb", tokens: "{gifter} {count} {tier}" },
   cheer: { label: "Cheer / Bits", tokens: "{name} {bits}" },
-  raid: { label: "Raid", tokens: "{name} {viewers}" }
+  raid: { label: "Raid", tokens: "{name} {viewers}" },
+  firstchat: { label: "First-time Chatter", tokens: "{name}" }
+};
+
+// The numeric field a variation threshold compares against, per alert type.
+const VARIATION_UNIT = {
+  sub: "tier", giftsub: "tier", resub: "months", giftbomb: "gifts",
+  cheer: "bits", raid: "viewers"
 };
 
 let config = null;
@@ -51,6 +58,10 @@ function renderAlertCards() {
     el(".f-ttsTemplate", node).value = a.ttsTemplate || "";
     el(".f-image", node).value = a.image || "";
     el(".f-sound", node).value = a.sound || "";
+    el(".f-variations", node).value = serializeVariations(a.variations);
+    // Label the variation threshold unit (bits/tier/months…) for this type.
+    const unit = VARIATION_UNIT[key];
+    if (unit) el(".variations-field code", node).textContent = `min ${unit} | accent | image | sound | title`;
 
     const card = el(".alert-card", node);
     card.dataset.key = key;
@@ -82,6 +93,16 @@ function collectFromDom() {
     a.ttsTemplate = el(".f-ttsTemplate", card).value;
     a.image = el(".f-image", card).value.trim();
     a.sound = el(".f-sound", card).value.trim();
+    a.variations = parseVariations(el(".f-variations", card).value);
+  }
+  // Goals
+  config.goals = config.goals || { subs: {}, follows: {} };
+  for (const key of ["subs", "follows"]) {
+    config.goals[key] = config.goals[key] || {};
+    config.goals[key].enabled = el(`#goal-${key}-enabled`).checked;
+    config.goals[key].label = el(`#goal-${key}-label`).value;
+    config.goals[key].current = Number(el(`#goal-${key}-current`).value) || 0;
+    config.goals[key].target = Number(el(`#goal-${key}-target`).value) || 1;
   }
   config.tts = config.tts || {};
   config.tts.provider = el("#tts-provider").value;
@@ -104,6 +125,28 @@ function parseList(str) {
     .split(/[\n,]+/)
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+// Variations: one per line — "min | accent | image | sound | title"
+function serializeVariations(vars) {
+  return (vars || [])
+    .map((v) => [v.min ?? "", v.accentColor || "", v.image || "", v.sound || "", v.title || ""].join(" | "))
+    .join("\n");
+}
+function parseVariations(str) {
+  return (str || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [min, accentColor, image, sound, title] = line.split("|").map((s) => s.trim());
+      const v = { min: Number(min) || 0 };
+      if (accentColor) v.accentColor = accentColor;
+      if (image) v.image = image;
+      if (sound) v.sound = sound;
+      if (title) v.title = title;
+      return v;
+    });
 }
 
 async function save() {
@@ -268,6 +311,18 @@ async function init() {
   el("#flt-minraid").value = flt.minRaidViewers || 0;
   el("#flt-groupgifts").checked = flt.groupGiftBombs !== false;
   el("#flt-ignore").value = (flt.ignoreUsers || []).join(", ");
+
+  // Goals
+  const goals = config.goals || {};
+  el("#goals-url").value = `${location.origin}/goals.html`;
+  copyBtn("#copy-goals-url", `${location.origin}/goals.html`);
+  for (const key of ["subs", "follows"]) {
+    const g = goals[key] || {};
+    el(`#goal-${key}-enabled`).checked = !!g.enabled;
+    el(`#goal-${key}-label`).value = g.label || "";
+    el(`#goal-${key}-current`).value = g.current || 0;
+    el(`#goal-${key}-target`).value = g.target || 1;
+  }
 
   // Live events monitor + raw replay
   el("#events-refresh").addEventListener("click", refreshEvents);

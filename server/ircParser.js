@@ -105,6 +105,16 @@ export function toAlert(parsed) {
         raw: tags
       };
     }
+    // A viewer's very first message in the channel (Twitch's first-msg flag).
+    if (tags["first-msg"] === "1") {
+      return {
+        type: "firstchat",
+        name: tags["display-name"] || tags.login || "Someone",
+        login: tags.login || "",
+        message: trailing || "",
+        raw: tags
+      };
+    }
     return null;
   }
 

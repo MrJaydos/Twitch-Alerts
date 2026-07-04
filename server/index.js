@@ -38,6 +38,7 @@ const OPEN_PATHS = new Set([
   "/overlay.js",
   "/overlay.css",
   "/widget.html",
+  "/goals.html",
   "/login",
   "/api/login",
   "/favicon.ico"
@@ -246,15 +247,77 @@ function eventDetail(e) {
     case "giftsub": return `from ${e.gifter}`;
     case "giftbomb": return `${e.count} subs from ${e.gifter}`;
     case "cheer": return `${e.bits} bits`;
-    case "raid": return `${e.viewers} viewers`;
+    case "raid": return `${e.viewers} viewers` + (e.returning ? " · returning" : "");
     default: return "";
   }
+}
+
+// The primary numeric value a variation threshold is compared against.
+function primaryValue(e) {
+  switch (e.type) {
+    case "cheer": return e.bits || 0;
+    case "resub": return e.months || 0;
+    case "giftbomb": return e.count || 0;
+    case "raid": return e.viewers || 0;
+    case "sub":
+    case "giftsub": return e.tier === "Prime" ? 1 : parseInt(e.tier || "1", 10) || 1;
+    default: return 0;
+  }
+}
+// Pick one item from a "a | b | c" list (for random image/sound variants).
+function pickRandom(field) {
+  if (typeof field !== "string" || !field.includes("|")) return field;
+  const opts = field.split("|").map((s) => s.trim()).filter(Boolean);
+  return opts.length ? opts[Math.floor(Math.random() * opts.length)] : "";
+}
+// Merge the best-matching variation onto the base style, then resolve randoms.
+function applyVariations(block, event) {
+  const style = { ...block };
+  const val = primaryValue(event);
+  const match = (block.variations || [])
+    .filter((v) => val >= (Number(v.min) || 0))
+    .sort((a, b) => (Number(b.min) || 0) - (Number(a.min) || 0))[0];
+  if (match) {
+    for (const k of ["accentColor", "textColor", "title", "message", "image", "sound", "duration"]) {
+      if (match[k] !== undefined && match[k] !== "") style[k] = match[k];
+    }
+  }
+  style.image = pickRandom(style.image);
+  style.sound = pickRandom(style.sound);
+  delete style.variations;
+  return style;
+}
+
+// Mark returning raiders (seen before) and remember new ones (real raids only).
+function markReturningRaider(event, source) {
+  if (event.type !== "raid") return;
+  const login = (event.login || event.name || "").toLowerCase();
+  if (!login) return;
+  const cfg = loadConfig();
+  const seen = cfg.seenRaiders || [];
+  event.returning = seen.includes(login);
+  if (!event.returning && source === "twitch") {
+    saveConfig({ ...cfg, seenRaiders: [...seen, login].slice(-1000) });
+  }
+}
+
+// Auto-increment session goals on real events, persist and push to /goals.html.
+function bumpGoals(event, source) {
+  if (source !== "twitch") return;
+  const cfg = loadConfig();
+  const g = cfg.goals || {};
+  let changed = false;
+  const subInc = { sub: 1, resub: 1, giftsub: 1, giftbomb: event.count || 1 }[event.type];
+  if (subInc && g.subs) { g.subs.current = (g.subs.current || 0) + subInc; changed = true; }
+  if (event.type === "follow" && g.follows) { g.follows.current = (g.follows.current || 0) + 1; changed = true; }
+  if (changed) { saveConfig({ ...cfg, goals: g }); broadcast({ kind: "goals", goals: g }); }
 }
 
 function handleAlert(event, source = "twitch") {
   const config = loadConfig();
   const result = processEvent(event); // filters, thresholds, gift grouping, dedupe, TTS
   const ev = result.event || event;
+  markReturningRaider(ev, source);
   const { block, styleKey } = resolveAlert(ev, config);
   const enabled = !!(block && block.enabled !== false);
   const fired = enabled && !result.drop;
@@ -269,8 +332,10 @@ function handleAlert(event, source = "twitch") {
     raw: ev.rawLine || null
   });
   if (!fired) return;
-  broadcast({ kind: "alert", event: ev, style: block, styleKey, tts: config.tts });
+  const style = applyVariations(block, ev);
+  broadcast({ kind: "alert", event: ev, style, styleKey, tts: config.tts });
   feedWidget(ev); // drive the original widget overlay too
+  bumpGoals(ev, source);
   console.log(`[alert] ${ev.type} (${source}):`, ev.name);
 }
 
@@ -323,7 +388,13 @@ app.get("/api/config", (req, res) => {
 app.post("/api/config", (req, res) => {
   const next = mergeInboundConfig(req.body || {});
   chat.setChannel(next.channel);
+  broadcast({ kind: "goals", goals: next.goals }); // keep /goals.html in sync
   res.json(sanitizeConfig(next));
+});
+
+// Current goal state for /goals.html on load.
+app.get("/api/goals", (req, res) => {
+  res.json({ goals: loadConfig().goals || {} });
 });
 
 app.get("/api/status", (req, res) => {

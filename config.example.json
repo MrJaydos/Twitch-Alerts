@@ -50,7 +50,8 @@
       "textColor": "#e1f7f1",
       "image": "",
       "sound": "",
-      "soundVolume": 0.6
+      "soundVolume": 0.6,
+      "variations": []
     },
     "sub": {
       "enabled": true,
@@ -64,7 +65,8 @@
       "textColor": "#e1f7f1",
       "image": "",
       "sound": "",
-      "soundVolume": 0.7
+      "soundVolume": 0.7,
+      "variations": []
     },
     "resub": {
       "enabled": true,
@@ -78,7 +80,8 @@
       "textColor": "#e1f7f1",
       "image": "",
       "sound": "",
-      "soundVolume": 0.7
+      "soundVolume": 0.7,
+      "variations": []
     },
     "giftsub": {
       "enabled": true,
@@ -92,7 +95,8 @@
       "textColor": "#e1f7f1",
       "image": "",
       "sound": "",
-      "soundVolume": 0.7
+      "soundVolume": 0.7,
+      "variations": []
     },
     "giftbomb": {
       "enabled": true,
@@ -106,7 +110,8 @@
       "textColor": "#e1f7f1",
       "image": "",
       "sound": "",
-      "soundVolume": 0.8
+      "soundVolume": 0.8,
+      "variations": []
     },
     "cheer": {
       "enabled": true,
@@ -120,7 +125,8 @@
       "textColor": "#e1f7f1",
       "image": "",
       "sound": "",
-      "soundVolume": 0.7
+      "soundVolume": 0.7,
+      "variations": []
     },
     "raid": {
       "enabled": true,
@@ -134,7 +140,38 @@
       "textColor": "#e1f7f1",
       "image": "",
       "sound": "",
-      "soundVolume": 0.8
+      "soundVolume": 0.8,
+      "variations": []
+    },
+    "firstchat": {
+      "enabled": false,
+      "style": "banner",
+      "duration": 6000,
+      "title": "First Message",
+      "message": "{name} is chatting for the first time!",
+      "tts": false,
+      "ttsTemplate": "Welcome {name}",
+      "accentColor": "#ff8ac2",
+      "textColor": "#e1f7f1",
+      "image": "",
+      "sound": "",
+      "soundVolume": 0.5,
+      "variations": []
     }
-  }
+  },
+  "goals": {
+    "subs": {
+      "enabled": false,
+      "label": "Sub Goal",
+      "current": 0,
+      "target": 50
+    },
+    "follows": {
+      "enabled": false,
+      "label": "Follower Goal",
+      "current": 0,
+      "target": 100
+    }
+  },
+  "seenRaiders": []
 }

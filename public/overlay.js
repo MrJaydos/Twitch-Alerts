@@ -360,7 +360,7 @@ function playCannon(event, style, done) {
 }
 function playRainbow(event, style, done) {
   playFixed(els.rainbow, style, () => {
-    els.rainbowWord.textContent = style.title || "RAID";
+    els.rainbowWord.textContent = event.returning ? "WELCOME BACK" : style.title || "RAID";
     els.rainbowName.textContent = event.name || "";
     els.rainbowSub.textContent = event.viewers ? `${event.viewers} RAIDERS` : "";
   }, done);

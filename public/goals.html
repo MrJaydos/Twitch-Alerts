@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Twitch Alerts — Goals</title>
+    <style>
+      @font-face { font-family: "AlertSans"; src: url("/fonts/montserrat-800.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+      @font-face { font-family: "AlertSans"; src: url("/fonts/montserrat-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; background: transparent; overflow: hidden; font-family: "AlertSans", system-ui, sans-serif; }
+      #goals { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 16px; padding: 20px; }
+      .goal { display: none; }
+      .goal.on { display: block; }
+      .goal-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; color: #e1f7f1; text-shadow: 0 2px 8px rgba(0,0,0,.7); }
+      .goal-label { font-size: 26px; font-weight: 800; letter-spacing: 0.02em; }
+      .goal-count { font-size: 24px; font-weight: 700; }
+      .goal-count b { color: var(--accent); }
+      .goal-track { height: 26px; border-radius: 999px; background: rgba(19,24,27,.82); border: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,.5); }
+      .goal-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 70%, #1d262c), var(--accent)); width: 0; transition: width 0.6s cubic-bezier(.2,.9,.25,1); box-shadow: 0 0 18px -2px var(--accent); }
+    </style>
+  </head>
+  <body>
+    <div id="goals">
+      <div class="goal" id="goal-subs" style="--accent:#1db954">
+        <div class="goal-head"><span class="goal-label"></span><span class="goal-count"><b class="cur">0</b> / <span class="tgt">0</span></span></div>
+        <div class="goal-track"><div class="goal-fill"></div></div>
+      </div>
+      <div class="goal" id="goal-follows" style="--accent:#9147ff">
+        <div class="goal-head"><span class="goal-label"></span><span class="goal-count"><b class="cur">0</b> / <span class="tgt">0</span></span></div>
+        <div class="goal-track"><div class="goal-fill"></div></div>
+      </div>
+    </div>
+    <script>
+      function render(goals) {
+        for (const key of ["subs", "follows"]) {
+          const g = (goals && goals[key]) || {};
+          const el = document.getElementById("goal-" + key);
+          el.classList.toggle("on", !!g.enabled);
+          if (!g.enabled) continue;
+          const cur = Number(g.current) || 0;
+          const tgt = Math.max(1, Number(g.target) || 1);
+          el.querySelector(".goal-label").textContent = g.label || "";
+          el.querySelector(".cur").textContent = cur;
+          el.querySelector(".tgt").textContent = g.target || 0;
+          el.querySelector(".goal-fill").style.width = Math.min(100, (cur / tgt) * 100) + "%";
+        }
+      }
+      fetch("/api/goals").then((r) => r.json()).then((d) => render(d.goals)).catch(() => {});
+      (function connect() {
+        const proto = location.protocol === "https:" ? "wss" : "ws";
+        const ws = new WebSocket(`${proto}://${location.host}/ws`);
+        ws.onmessage = (e) => {
+          try { const d = JSON.parse(e.data); if (d.kind === "goals") render(d.goals); } catch {}
+        };
+        ws.onclose = () => setTimeout(connect, 2000);
+        ws.onerror = () => ws.close();
+      })();
+    </script>
+  </body>
+</html>

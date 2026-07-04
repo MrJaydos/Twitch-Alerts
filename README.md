@@ -150,6 +150,26 @@ engine:
 Cheermote codes (e.g. `cheer100`) are stripped from spoken cheer messages, and
 speech is capped at "Max characters".
 
+## Variations, first-chat, goals
+
+These enhance the **modern overlay** (`/overlay.html`):
+
+- **Variations** — per alert, add threshold-based overrides so bigger events
+  look bigger. Each line is `min | accent | image | sound | title`; the highest
+  matching threshold wins. The `min` compares against bits (cheer), months
+  (resub), tier (subs), gift count (gift bomb) or viewers (raid). E.g. a cheer
+  variation `1000 | #ffd700 | huge.gif | huge.mp3 | HUGE CHEER!` fires only for
+  1000+ bit cheers.
+- **Random image/sound** — put several in one field separated by `|`
+  (`a.gif | b.gif | c.gif`) and one is picked at random each time.
+- **First-time chatter** — a `First Message` alert fires the first time a viewer
+  ever chats (off by default; enable it in its card).
+- **Returning raiders** — raids from someone who's raided before show
+  "Welcome back" instead of "Raid".
+- **Goal bars** — add `/goals.html` as its own Browser Source for sub / follower
+  progress bars. Counts auto-increment on live events and persist; set the
+  target/label and reset the count on the settings page.
+
 ## Filtering & anti-spam
 
 Applied before any alert fires (to both overlays), on the settings page:
