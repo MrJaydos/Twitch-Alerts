@@ -17,6 +17,7 @@ export class TwitchChat {
     this.reconnectDelay = 2000;
     this.status = "disconnected";
     this.shouldRun = false;
+    this.shouldSuppress = null; // (type) => bool; set by the server for EventSub dedupe
   }
 
   setChannel(channel) {
@@ -72,6 +73,8 @@ export class TwitchChat {
         try {
           const alert = toAlert(parseLine(line));
           if (alert) {
+            // Skip types EventSub is already delivering (avoids double alerts).
+            if (this.shouldSuppress && this.shouldSuppress(alert.type)) continue;
             alert.rawLine = line;
             this.onAlert(alert, "twitch");
           }

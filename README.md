@@ -258,11 +258,23 @@ Use these in the **Message** field; they're filled in per event:
 Config is stored in `config.json` (git-ignored). `config.example.json` shows the
 full shape.
 
-## Follow alerts
+## Follow alerts + reliable events (Twitch login)
 
-Subs, resubs, gifts, cheers and raids need no login. **Follows** are the one
-exception: Twitch no longer delivers them over chat, so they require
-[EventSub](https://dev.twitch.tv/docs/eventsub/) with an authenticated token.
+Everything works out of the box by reading chat. Connecting your Twitch account
+adds two things:
+
+- **Follow alerts** — follows aren't in chat at all, so they *require*
+  [EventSub](https://dev.twitch.tv/docs/eventsub/).
+- **Reliable subs / resubs / cheers / raids** — once connected, these come over
+  EventSub (guaranteed delivery + exact tier/bit/viewer data) instead of being
+  read from chat, and the chat reader stops handling them to avoid duplicates.
+  **Gifts stay on chat** so recipient names and gift-bomb grouping are kept.
+
+The scopes requested are `moderator:read:followers channel:read:subscriptions
+bits:read` (raids need none). Subscriptions you don't grant simply keep coming
+from chat. **If you connected before this update, reconnect once** to grant the
+new scopes.
+
 This is a one-time setup on the settings page:
 
 1. Go to the [Twitch developer console](https://dev.twitch.tv/console/apps) and
@@ -277,7 +289,9 @@ This is a one-time setup on the settings page:
    scope is requested). You'll be redirected back and the status turns green.
 
 Under the hood the app opens a Twitch EventSub WebSocket, subscribes to
-`channel.follow` (v2), and refreshes the access token automatically. If you run
+`channel.follow` (v2) plus `channel.subscribe`, `channel.subscription.message`,
+`channel.cheer` and `channel.raid`, and refreshes the access token
+automatically. If you run
 behind a reverse proxy (Coolify), set **Public URL** in that card (or the
 `PUBLIC_URL`/`publicUrl` config value) so the OAuth redirect matches what you
 registered.

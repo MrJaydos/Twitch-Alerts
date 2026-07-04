@@ -13,7 +13,10 @@ import { processEvent } from "./pipeline.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = join(__dirname, "..", "public");
 
-const FOLLOW_SCOPE = "moderator:read:followers";
+// Scopes for the EventSub topics we subscribe to (follows, subs, resubs,
+// cheers; raids need none). Users granted only the old follows scope keep
+// working — the extra topics just fail until they reconnect.
+const EVENTSUB_SCOPES = "moderator:read:followers channel:read:subscriptions bits:read";
 
 const app = express();
 app.set("trust proxy", true);
@@ -277,6 +280,10 @@ chat.setChannel(loadConfig().channel);
 const eventsub = new EventSub(handleAlert);
 eventsub.start();
 
+// When EventSub is delivering a given alert type, suppress the chat reader for
+// it so we don't fire twice. Gifts always stay on chat (grouping + recipients).
+chat.shouldSuppress = (type) => eventsub.activeTypes.has(type);
+
 // --- config sanitization -------------------------------------------------
 // Never send secrets/tokens to a browser; expose only booleans it needs.
 function sanitizeConfig(config) {
@@ -324,7 +331,7 @@ app.get("/api/status", (req, res) => {
     chat: chat.getStatus(),
     follows: eventsub.getStatus(),
     redirectUri: redirectUri(req),
-    scope: FOLLOW_SCOPE,
+    scope: EVENTSUB_SCOPES,
     authEnabled: authEnabled(),
     configPath: getConfigPath()
   });
@@ -353,7 +360,7 @@ app.get("/auth/twitch", (req, res) => {
   url.searchParams.set("client_id", cfg.twitch.clientId);
   url.searchParams.set("redirect_uri", redirectUri(req));
   url.searchParams.set("response_type", "code");
-  url.searchParams.set("scope", FOLLOW_SCOPE);
+  url.searchParams.set("scope", EVENTSUB_SCOPES);
   url.searchParams.set("state", state);
   res.redirect(url.toString());
 });
