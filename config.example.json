@@ -188,5 +188,11 @@
     "levelPoints": 500,
     "decaySeconds": 300
   },
-  "seenRaiders": []
+  "seenRaiders": [],
+  "widgetVolume": {
+    "follow": 1,
+    "sub": 1,
+    "host": 1,
+    "cheer": 1
+  }
 }

@@ -203,6 +203,24 @@
         </div>
       </section>
 
+      <section class="card">
+        <h2>Original widget — alert volume</h2>
+        <p class="hint">
+          The original widget's alert sounds are baked into the compiled
+          animation, not the "Sound volume" slider below (that only affects
+          the modern overlay). Its subscriber sound ships noticeably louder
+          than the rest — turn it down here. Only applies to
+          <strong>widget.html</strong>; takes effect immediately on
+          already-open Browser Sources.
+        </p>
+        <div class="grid">
+          <label>Follow<input type="range" id="wv-follow" min="0" max="1" step="0.05" /></label>
+          <label>Subscriber (incl. resub / gift)<input type="range" id="wv-sub" min="0" max="1" step="0.05" /></label>
+          <label>Raid<input type="range" id="wv-host" min="0" max="1" step="0.05" /></label>
+          <label>Cheer / Bits<input type="range" id="wv-cheer" min="0" max="1" step="0.05" /></label>
+        </div>
+      </section>
+
       <section id="alerts"></section>
 
       <div class="save-bar">

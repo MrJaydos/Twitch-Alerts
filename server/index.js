@@ -182,17 +182,41 @@ function broadcast(payload) {
 }
 
 // The original widget (Flash) requests a socket policy file on connect; answer
-// it, then unlock alerts with a minimal config (the widget self-initialises its
-// defaults, so an empty refreshConfig is enough to enable the built-in anims).
+// it, then unlock alerts with a refreshConfig message. The widget self-
+// initialises everything else, but `metaCustomAnim.*.volume` drives the
+// per-alert-type volume of its own compiled sounds (its sub sound otherwise
+// ships much louder than the rest) — the only piece of this we actually set.
 const SOCKET_POLICY =
   '<?xml version="1.0"?><cross-domain-policy><allow-access-from domain="*" to-ports="*"/></cross-domain-policy>\0';
+
+function widgetRefreshConfigPayload() {
+  const wv = loadConfig().widgetVolume || {};
+  const anim = (v) => ({ pathToSwf: "", useDefault: true, volume: typeof v === "number" ? v : 1 });
+  return {
+    type: "refreshConfig",
+    metaCustomAnim: {
+      metaCustomAnimNewFollow: anim(wv.follow),
+      metaCustomAnimNewSub: anim(wv.sub),
+      metaCustomAnimNewHost: anim(wv.host),
+      metaCustomAnimNewCheers: anim(wv.cheer),
+      metaCustomAnimNewDonation: anim(1)
+    }
+  };
+}
+
+function sendWidgetRefreshConfig() {
+  const data = Buffer.from(JSON.stringify(widgetRefreshConfigPayload()) + "\n");
+  for (const ws of widgetWss.clients) {
+    if (ws.readyState === ws.OPEN) ws.send(data);
+  }
+}
 
 widgetWss.on("connection", (ws) => {
   ws.on("message", (m) => {
     if (m.toString().includes("policy-file-request")) ws.send(Buffer.from(SOCKET_POLICY));
   });
   setTimeout(() => {
-    if (ws.readyState === ws.OPEN) ws.send(Buffer.from(JSON.stringify({ type: "refreshConfig" }) + "\n"));
+    if (ws.readyState === ws.OPEN) ws.send(Buffer.from(JSON.stringify(widgetRefreshConfigPayload()) + "\n"));
   }, 300);
   console.log("[widget] Ruffle widget connected");
 });
@@ -399,6 +423,7 @@ app.post("/api/config", (req, res) => {
   const next = mergeInboundConfig(req.body || {});
   chat.setChannel(next.channel);
   broadcast({ kind: "goals", goals: next.goals }); // keep /goals.html in sync
+  sendWidgetRefreshConfig(); // push updated widget volume to any connected widget
   res.json(sanitizeConfig(next));
 });
 

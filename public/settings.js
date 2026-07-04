@@ -106,6 +106,12 @@ function collectFromDom() {
     config.goals[key].current = Number(el(`#goal-${key}-current`).value) || 0;
     config.goals[key].target = Number(el(`#goal-${key}-target`).value) || 1;
   }
+  // Original widget volume
+  config.widgetVolume = config.widgetVolume || {};
+  config.widgetVolume.follow = Number(el("#wv-follow").value);
+  config.widgetVolume.sub = Number(el("#wv-sub").value);
+  config.widgetVolume.host = Number(el("#wv-host").value);
+  config.widgetVolume.cheer = Number(el("#wv-cheer").value);
   // Hype meter
   config.hype = config.hype || {};
   config.hype.enabled = el("#hype-enabled").checked;
@@ -332,6 +338,13 @@ async function init() {
     el(`#goal-${key}-current`).value = g.current || 0;
     el(`#goal-${key}-target`).value = g.target || 1;
   }
+
+  // Original widget volume
+  const wv = config.widgetVolume || {};
+  el("#wv-follow").value = wv.follow ?? 1;
+  el("#wv-sub").value = wv.sub ?? 1;
+  el("#wv-host").value = wv.host ?? 1;
+  el("#wv-cheer").value = wv.cheer ?? 1;
 
   // Hype meter
   const hype = config.hype || {};

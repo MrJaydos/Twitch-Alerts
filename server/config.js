@@ -209,7 +209,17 @@ export const DEFAULT_CONFIG = {
     decaySeconds: 300         // reset the combo meter after this much quiet
   },
   // Logins of raiders we've seen before (for "welcome back" on returning raids).
-  seenRaiders: []
+  seenRaiders: [],
+  // Volume multipliers (0-1) for the *original widget's* own compiled sounds —
+  // separate from `alerts.*.soundVolume`, which only affects the modern
+  // overlay's audio. The widget's built-in sub sound ships much louder than
+  // its other alerts; turn it down here rather than in the modern overlay.
+  widgetVolume: {
+    follow: 1,
+    sub: 1,
+    host: 1, // raids
+    cheer: 1
+  }
 };
 
 function deepMerge(base, override) {
