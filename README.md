@@ -150,6 +150,31 @@ engine:
 Cheermote codes (e.g. `cheer100`) are stripped from spoken cheer messages, and
 speech is capped at "Max characters".
 
+## Filtering & anti-spam
+
+Applied before any alert fires (to both overlays), on the settings page:
+
+- **Ignore users** — bots and your own account (a sensible default bot list is
+  pre-filled). Ignored events are dropped.
+- **Minimum thresholds** — only alert on cheers ≥ N bits or raids ≥ N viewers.
+- **Group gift bombs** — a community gift (e.g. 5 subs) arrives as one
+  "mystery gift" plus one message per recipient; this collapses them into a
+  single "gifted N subs" alert instead of six. On by default.
+- **Dedupe** — identical events delivered twice in quick succession are dropped
+  automatically.
+
+Dropped events still appear in the Live events monitor with the reason, so
+nothing is hidden.
+
+## TTS safety
+
+- **Minimum bits to speak** — read only cheers worth at least N bits.
+- **Mask profanity** — common profanity is masked in spoken messages (on by
+  default).
+- **Muted users** — never speak certain users' messages.
+- **Skip current TTS** — a button on the settings page stops whatever's speaking
+  right now.
+
 ## Live events & testing
 
 The **Live events** panel on the dashboard lists everything the app has

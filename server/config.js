@@ -32,6 +32,21 @@ export const DEFAULT_CONFIG = {
   },
   // When true, gifted-sub alerts use the `sub` alert styling.
   treatGiftedAsSub: true,
+  // Event filtering, applied before any alert fires (to both overlays).
+  filters: {
+    // Logins/names to ignore entirely (bots, yourself). Case-insensitive.
+    ignoreUsers: [
+      "nightbot", "streamelements", "streamlabs", "moobot", "wizebot",
+      "fossabot", "soundalerts", "soundalert", "commanderroot",
+      "anotherttvviewer", "streamlootsbot"
+    ],
+    // Drop cheers / raids below these sizes (0 = allow all).
+    minBits: 0,
+    minRaidViewers: 0,
+    // Collapse a community gift bomb (mystery gift + its individual gifts)
+    // into a single alert instead of one per recipient.
+    groupGiftBombs: true
+  },
   // Text-to-speech, spoken by the overlay after an alert fires.
   //   provider: "streamelements" (plays an MP3 from StreamElements' speech API,
   //             works inside OBS's browser source), "browser" (Web Speech API,
@@ -41,7 +56,10 @@ export const DEFAULT_CONFIG = {
     provider: "streamelements",
     voice: "Brian",
     volume: 1,
-    maxLength: 200
+    maxLength: 200,
+    minBits: 0,             // only speak cheers with at least this many bits
+    filterProfanity: true,  // mask common profanity in spoken messages
+    mutedUsers: []          // names/logins whose messages are never spoken
   },
   alerts: {
     follow: {

@@ -99,6 +99,7 @@ export function toAlert(parsed) {
       return {
         type: "cheer",
         name: tags["display-name"] || tags.login || "Someone",
+        login: tags.login || "",
         bits,
         message: trailing || "",
         raw: tags
@@ -111,11 +112,13 @@ export function toAlert(parsed) {
 
   const msgId = tags["msg-id"];
   const name = tags["display-name"] || tags.login || "Someone";
+  const login = tags.login || "";
   const tier = planToTier(tags["msg-param-sub-plan"]);
+  const originId = tags["msg-param-origin-id"] || "";
 
   switch (msgId) {
     case "sub": {
-      return { type: "sub", name, tier, months: 1, raw: tags };
+      return { type: "sub", name, login, tier, months: 1, raw: tags };
     }
     case "resub": {
       const months =
@@ -123,7 +126,7 @@ export function toAlert(parsed) {
         parseInt(tags["msg-param-months"], 10) ||
         1;
       const streak = parseInt(tags["msg-param-streak-months"], 10) || 0;
-      return { type: "resub", name, tier, months, streak, message: trailing || "", raw: tags };
+      return { type: "resub", name, login, tier, months, streak, message: trailing || "", raw: tags };
     }
     case "subgift":
     case "anonsubgift": {
@@ -134,9 +137,12 @@ export function toAlert(parsed) {
         // `name` is the recipient so sub-style templates read naturally.
         name: tags["msg-param-recipient-display-name"] || tags["msg-param-recipient-user-name"] || "Someone",
         gifter,
+        // `login` is the gifter (the actor) for filtering/ignoring.
+        login: msgId === "anonsubgift" ? "" : login,
         tier,
         months: parseInt(tags["msg-param-months"], 10) || 1,
         recipient: tags["msg-param-recipient-display-name"] || "",
+        originId,
         raw: tags
       };
     }
@@ -148,12 +154,17 @@ export function toAlert(parsed) {
         parseInt(tags["msg-param-mass-gift-count"], 10) ||
         parseInt(tags["msg-param-sender-count"], 10) ||
         1;
-      return { type: "giftbomb", name: gifter, gifter, tier, count, raw: tags };
+      return {
+        type: "giftbomb", name: gifter, gifter,
+        login: msgId === "anonsubmysterygift" ? "" : login,
+        tier, count, originId, raw: tags
+      };
     }
     case "raid": {
       return {
         type: "raid",
         name: tags["msg-param-displayName"] || tags["msg-param-login"] || name,
+        login: tags["msg-param-login"] || login,
         viewers: parseInt(tags["msg-param-viewerCount"], 10) || 0,
         raw: tags
       };

@@ -91,7 +91,23 @@
       </section>
 
       <section class="card">
-        <h2>Text-to-speech</h2>
+        <h2>Filters</h2>
+        <p class="hint">Applied before any alert fires — to both overlays.</p>
+        <div class="grid">
+          <label>Minimum bits (cheer)<input type="number" id="flt-minbits" min="0" step="1" /></label>
+          <label>Minimum raid viewers<input type="number" id="flt-minraid" min="0" step="1" /></label>
+          <label class="inline-check">Group gift bombs into one alert<input type="checkbox" id="flt-groupgifts" /></label>
+          <label class="wide">Ignore these users (bots / yourself) — one per line or comma-separated
+            <textarea id="flt-ignore" rows="2" placeholder="nightbot, streamelements, yourname"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Text-to-speech</h2>
+          <button id="tts-skip" class="ghost" type="button">Skip current TTS</button>
+        </div>
         <p class="hint">
           Spoken after an alert fires, for alerts with "Speak this alert" ticked
           below (subs and bits by default). StreamElements' voices play as audio
@@ -108,6 +124,11 @@
           <label>Voice (StreamElements)<input type="text" id="tts-voice" placeholder="Brian" /></label>
           <label>Volume<input type="range" id="tts-volume" min="0" max="1" step="0.05" /></label>
           <label>Max characters<input type="number" id="tts-maxlen" min="20" step="10" /></label>
+          <label>Minimum bits to speak<input type="number" id="tts-minbits" min="0" step="1" /></label>
+          <label class="inline-check">Mask profanity in speech<input type="checkbox" id="tts-profanity" /></label>
+          <label class="wide">Never speak these users' messages — one per line or comma-separated
+            <textarea id="tts-muted" rows="2" placeholder="troublemaker1, troublemaker2"></textarea>
+          </label>
         </div>
       </section>
 

@@ -186,7 +186,6 @@ select {
 .event-detail { color: var(--muted); }
 .event-src { margin-left: auto; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
 .event-row.notfired { opacity: 0.5; }
-.event-row.notfired .event-src::after { content: " · skipped"; }
 
 .replay { margin-top: 16px; }
 .replay-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }

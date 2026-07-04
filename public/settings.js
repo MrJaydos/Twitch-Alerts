@@ -88,6 +88,22 @@ function collectFromDom() {
   config.tts.voice = el("#tts-voice").value.trim() || "Brian";
   config.tts.volume = Number(el("#tts-volume").value);
   config.tts.maxLength = Number(el("#tts-maxlen").value) || 200;
+  config.tts.minBits = Number(el("#tts-minbits").value) || 0;
+  config.tts.filterProfanity = el("#tts-profanity").checked;
+  config.tts.mutedUsers = parseList(el("#tts-muted").value);
+  config.filters = config.filters || {};
+  config.filters.minBits = Number(el("#flt-minbits").value) || 0;
+  config.filters.minRaidViewers = Number(el("#flt-minraid").value) || 0;
+  config.filters.groupGiftBombs = el("#flt-groupgifts").checked;
+  config.filters.ignoreUsers = parseList(el("#flt-ignore").value);
+}
+
+// Split a textarea of comma/newline-separated names into a clean array.
+function parseList(str) {
+  return (str || "")
+    .split(/[\n,]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 async function save() {
@@ -241,6 +257,17 @@ async function init() {
   el("#tts-voice").value = tts.voice || "Brian";
   el("#tts-volume").value = tts.volume ?? 1;
   el("#tts-maxlen").value = tts.maxLength || 200;
+  el("#tts-minbits").value = tts.minBits || 0;
+  el("#tts-profanity").checked = tts.filterProfanity !== false;
+  el("#tts-muted").value = (tts.mutedUsers || []).join(", ");
+  el("#tts-skip").addEventListener("click", () => fetch("/api/tts/skip", { method: "POST" }));
+
+  // Filters
+  const flt = config.filters || {};
+  el("#flt-minbits").value = flt.minBits || 0;
+  el("#flt-minraid").value = flt.minRaidViewers || 0;
+  el("#flt-groupgifts").checked = flt.groupGiftBombs !== false;
+  el("#flt-ignore").value = (flt.ignoreUsers || []).join(", ");
 
   // Live events monitor + raw replay
   el("#events-refresh").addEventListener("click", refreshEvents);
@@ -277,11 +304,12 @@ async function refreshEvents() {
       const cls = e.fired ? "" : " notfired";
       const name = e.name ? `<span class="event-name">${escapeHtml(e.name)}</span>` : "";
       const detail = e.detail ? `<span class="event-detail">${escapeHtml(e.detail)}</span>` : "";
+      const src = e.reason ? `${e.source} · ${e.reason}` : e.source;
       return `<div class="event-row${cls}">
         <span class="event-time">${REL_TIME(e.time)}</span>
         <span class="event-type">${escapeHtml(e.type)}</span>
         ${name}${detail}
-        <span class="event-src">${escapeHtml(e.source)}</span>
+        <span class="event-src">${escapeHtml(src)}</span>
       </div>`;
     })
     .join("");

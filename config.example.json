@@ -10,11 +10,32 @@
     "publicUrl": ""
   },
   "treatGiftedAsSub": true,
+  "filters": {
+    "ignoreUsers": [
+      "nightbot",
+      "streamelements",
+      "streamlabs",
+      "moobot",
+      "wizebot",
+      "fossabot",
+      "soundalerts",
+      "soundalert",
+      "commanderroot",
+      "anotherttvviewer",
+      "streamlootsbot"
+    ],
+    "minBits": 0,
+    "minRaidViewers": 0,
+    "groupGiftBombs": true
+  },
   "tts": {
     "provider": "streamelements",
     "voice": "Brian",
     "volume": 1,
-    "maxLength": 200
+    "maxLength": 200,
+    "minBits": 0,
+    "filterProfanity": true,
+    "mutedUsers": []
   },
   "alerts": {
     "follow": {

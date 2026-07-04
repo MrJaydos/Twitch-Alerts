@@ -256,8 +256,18 @@ function speak(text, tts) {
 }
 function maybeSpeak(event, style, tts) {
   if (!style.tts || !tts || tts.provider === "off") return;
+  if (event.speak === false) return; // suppressed by server (muted user / below min bits)
   const text = fillTemplate(style.ttsTemplate || style.message || "", event);
   if (text) setTimeout(() => speak(text, tts), 700); // let the alert sound land first
+}
+
+function stopSpeech() {
+  try {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
+  } catch {
+    /* ignore */
+  }
 }
 
 // ---- Helpers -------------------------------------------------------------
@@ -375,6 +385,7 @@ function connect() {
     try {
       const data = JSON.parse(e.data);
       if (data.kind === "alert") { queue.push(data); playNext(); }
+      else if (data.kind === "ttsSkip") stopSpeech();
     } catch { /* ignore */ }
   };
   ws.onclose = () => setTimeout(connect, 2000);

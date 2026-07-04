@@ -8,6 +8,7 @@ import { loadConfig, saveConfig, getConfigPath } from "./config.js";
 import { TwitchChat } from "./twitchChat.js";
 import { EventSub } from "./eventsub.js";
 import { parseLine, toAlert } from "./ircParser.js";
+import { processEvent } from "./pipeline.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = join(__dirname, "..", "public");
@@ -249,21 +250,25 @@ function eventDetail(e) {
 
 function handleAlert(event, source = "twitch") {
   const config = loadConfig();
-  const { block, styleKey } = resolveAlert(event, config);
-  const fired = !!(block && block.enabled !== false);
+  const result = processEvent(event); // filters, thresholds, gift grouping, dedupe, TTS
+  const ev = result.event || event;
+  const { block, styleKey } = resolveAlert(ev, config);
+  const enabled = !!(block && block.enabled !== false);
+  const fired = enabled && !result.drop;
   recordEvent({
     time: Date.now(),
-    type: event.type,
-    name: event.name,
-    detail: eventDetail(event),
+    type: ev.type,
+    name: ev.name,
+    detail: eventDetail(ev),
     source,
     fired,
-    raw: event.rawLine || null
+    reason: result.drop ? result.reason : enabled ? null : "disabled",
+    raw: ev.rawLine || null
   });
   if (!fired) return;
-  broadcast({ kind: "alert", event, style: block, styleKey, tts: config.tts });
-  feedWidget(event); // drive the original widget overlay too
-  console.log(`[alert] ${event.type} (${source}):`, event.name);
+  broadcast({ kind: "alert", event: ev, style: block, styleKey, tts: config.tts });
+  feedWidget(ev); // drive the original widget overlay too
+  console.log(`[alert] ${ev.type} (${source}):`, ev.name);
 }
 
 const chat = new TwitchChat(handleAlert);
@@ -419,6 +424,12 @@ app.post("/api/test", (req, res) => {
 // Recent events for the dashboard monitor (most recent first).
 app.get("/api/events", (req, res) => {
   res.json({ events: eventLog.slice().reverse() });
+});
+
+// Stop any TTS currently playing on the overlay(s).
+app.post("/api/tts/skip", (req, res) => {
+  broadcast({ kind: "ttsSkip" });
+  res.json({ ok: true });
 });
 
 // Replay a raw Twitch IRC line through the exact live parse + render path.
