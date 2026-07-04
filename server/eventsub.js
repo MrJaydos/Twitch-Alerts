@@ -23,7 +23,11 @@ const TOPICS = [
   { type: "channel.subscribe", version: "1", cond: (u) => ({ broadcaster_user_id: u.id }), covers: ["sub"], scope: "channel:read:subscriptions" },
   { type: "channel.subscription.message", version: "1", cond: (u) => ({ broadcaster_user_id: u.id }), covers: ["resub"], scope: "channel:read:subscriptions" },
   { type: "channel.cheer", version: "1", cond: (u) => ({ broadcaster_user_id: u.id }), covers: ["cheer"], scope: "bits:read" },
-  { type: "channel.raid", version: "1", cond: (u) => ({ to_broadcaster_user_id: u.id }), covers: ["raid"], scope: "(none)" }
+  { type: "channel.raid", version: "1", cond: (u) => ({ to_broadcaster_user_id: u.id }), covers: ["raid"], scope: "(none)" },
+  // Hype Trains drive the hype meter, not an alert; covers:[] = no chat suppression.
+  { type: "channel.hype_train.begin", version: "1", cond: (u) => ({ broadcaster_user_id: u.id }), covers: [], scope: "channel:read:hype_train" },
+  { type: "channel.hype_train.progress", version: "1", cond: (u) => ({ broadcaster_user_id: u.id }), covers: [], scope: "channel:read:hype_train" },
+  { type: "channel.hype_train.end", version: "1", cond: (u) => ({ broadcaster_user_id: u.id }), covers: [], scope: "channel:read:hype_train" }
 ];
 
 /**
@@ -46,6 +50,7 @@ export class EventSub {
     this.detail = "";
     this.shouldRun = false;
     this.activeTypes = new Set(); // normalized alert types delivered via EventSub
+    this.onHype = () => {}; // set by the server; receives Hype Train updates
   }
 
   hasAuth() {
@@ -157,6 +162,20 @@ export class EventSub {
       }
       case "channel.raid":
         this.onAlert({ type: "raid", name: ev.from_broadcaster_user_name || ev.from_broadcaster_user_login, login: ev.from_broadcaster_user_login || "", viewers: ev.viewers || 0, raw: ev });
+        break;
+      case "channel.hype_train.begin":
+      case "channel.hype_train.progress": {
+        const goal = ev.goal || 0;
+        this.onHype({
+          phase: "progress",
+          level: ev.level || 1,
+          progress: goal > 0 ? Math.min(1, (ev.progress || 0) / goal) : 0,
+          total: ev.total || 0
+        });
+        break;
+      }
+      case "channel.hype_train.end":
+        this.onHype({ phase: "end", level: ev.level || 0, total: ev.total || 0 });
         break;
       default:
         break;

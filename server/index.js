@@ -9,6 +9,7 @@ import { TwitchChat } from "./twitchChat.js";
 import { EventSub } from "./eventsub.js";
 import { parseLine, toAlert } from "./ircParser.js";
 import { processEvent } from "./pipeline.js";
+import { HypeTracker } from "./hype.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = join(__dirname, "..", "public");
@@ -16,7 +17,7 @@ const PUBLIC_DIR = join(__dirname, "..", "public");
 // Scopes for the EventSub topics we subscribe to (follows, subs, resubs,
 // cheers; raids need none). Users granted only the old follows scope keep
 // working — the extra topics just fail until they reconnect.
-const EVENTSUB_SCOPES = "moderator:read:followers channel:read:subscriptions bits:read";
+const EVENTSUB_SCOPES = "moderator:read:followers channel:read:subscriptions bits:read channel:read:hype_train";
 
 const app = express();
 app.set("trust proxy", true);
@@ -39,6 +40,7 @@ const OPEN_PATHS = new Set([
   "/overlay.css",
   "/widget.html",
   "/goals.html",
+  "/hype.html",
   "/login",
   "/api/login",
   "/favicon.ico"
@@ -336,8 +338,11 @@ function handleAlert(event, source = "twitch") {
   broadcast({ kind: "alert", event: ev, style, styleKey, tts: config.tts });
   feedWidget(ev); // drive the original widget overlay too
   bumpGoals(ev, source);
+  hype.addSupport(ev); // build the combo/hype meter
   console.log(`[alert] ${ev.type} (${source}):`, ev.name);
 }
+
+const hype = new HypeTracker(broadcast);
 
 const chat = new TwitchChat(handleAlert);
 chat.setChannel(loadConfig().channel);
@@ -348,6 +353,9 @@ eventsub.start();
 // When EventSub is delivering a given alert type, suppress the chat reader for
 // it so we don't fire twice. Gifts always stay on chat (grouping + recipients).
 chat.shouldSuppress = (type) => eventsub.activeTypes.has(type);
+
+// Real Twitch Hype Trains drive the hype meter (overrides the combo meter).
+eventsub.onHype = (update) => hype.fromTwitch(update);
 
 // --- config sanitization -------------------------------------------------
 // Never send secrets/tokens to a browser; expose only booleans it needs.
@@ -395,6 +403,11 @@ app.post("/api/config", (req, res) => {
 // Current goal state for /goals.html on load.
 app.get("/api/goals", (req, res) => {
   res.json({ goals: loadConfig().goals || {} });
+});
+
+// Current hype meter state for /hype.html on load.
+app.get("/api/hype", (req, res) => {
+  res.json(hype.getState());
 });
 
 app.get("/api/status", (req, res) => {

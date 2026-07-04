@@ -190,6 +190,16 @@ export const DEFAULT_CONFIG = {
     subs: { enabled: false, label: "Sub Goal", current: 0, target: 50 },
     follows: { enabled: false, label: "Follower Goal", current: 0, target: 100 }
   },
+  // Hype / combo meter shown on /hype.html. Real Twitch Hype Trains drive it
+  // when your account is connected; otherwise a homegrown combo meter builds
+  // from rapid subs/gifts/bits and empties after `decaySeconds` of quiet.
+  hype: {
+    enabled: true,
+    pointsPerSub: 100,        // sub / resub / gift (per sub)
+    pointsPerHundredBits: 100, // points per 100 bits cheered
+    levelPoints: 500,         // points to advance one combo level
+    decaySeconds: 300         // reset the combo meter after this much quiet
+  },
   // Logins of raiders we've seen before (for "welcome back" on returning raids).
   seenRaiders: []
 };

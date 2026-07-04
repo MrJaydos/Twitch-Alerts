@@ -104,6 +104,13 @@ function collectFromDom() {
     config.goals[key].current = Number(el(`#goal-${key}-current`).value) || 0;
     config.goals[key].target = Number(el(`#goal-${key}-target`).value) || 1;
   }
+  // Hype meter
+  config.hype = config.hype || {};
+  config.hype.enabled = el("#hype-enabled").checked;
+  config.hype.pointsPerSub = Number(el("#hype-persub").value) || 0;
+  config.hype.pointsPerHundredBits = Number(el("#hype-perbits").value) || 0;
+  config.hype.levelPoints = Number(el("#hype-levelpoints").value) || 1;
+  config.hype.decaySeconds = Number(el("#hype-decay").value) || 300;
   config.tts = config.tts || {};
   config.tts.provider = el("#tts-provider").value;
   config.tts.voice = el("#tts-voice").value.trim() || "Brian";
@@ -323,6 +330,16 @@ async function init() {
     el(`#goal-${key}-current`).value = g.current || 0;
     el(`#goal-${key}-target`).value = g.target || 1;
   }
+
+  // Hype meter
+  const hype = config.hype || {};
+  el("#hype-url").value = `${location.origin}/hype.html`;
+  copyBtn("#copy-hype-url", `${location.origin}/hype.html`);
+  el("#hype-enabled").checked = hype.enabled !== false;
+  el("#hype-persub").value = hype.pointsPerSub ?? 100;
+  el("#hype-perbits").value = hype.pointsPerHundredBits ?? 100;
+  el("#hype-levelpoints").value = hype.levelPoints ?? 500;
+  el("#hype-decay").value = hype.decaySeconds ?? 300;
 
   // Live events monitor + raw replay
   el("#events-refresh").addEventListener("click", refreshEvents);

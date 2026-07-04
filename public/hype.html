@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Twitch Alerts — Hype</title>
+    <style>
+      @font-face { font-family: "AlertSans"; src: url("/fonts/montserrat-800.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+      @font-face { font-family: "AlertSans"; src: url("/fonts/montserrat-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; background: transparent; overflow: hidden; font-family: "AlertSans", system-ui, sans-serif; }
+      #hype {
+        --accent: #ff7a18;
+        position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center;
+        padding-top: 4vh; opacity: 0; transform: translateY(-24px); transition: opacity .4s ease, transform .4s ease;
+      }
+      #hype.on { opacity: 1; transform: translateY(0); }
+      .card {
+        width: 560px; max-width: 92vw; padding: 16px 22px; border-radius: 16px; color: #fff;
+        background: linear-gradient(180deg, rgba(35,20,10,.86), rgba(20,12,8,.9));
+        border: 2px solid var(--accent);
+        box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 18px 50px rgba(0,0,0,.55), 0 0 40px -6px var(--accent);
+      }
+      .head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+      .title { font-size: 24px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); text-shadow: 0 0 16px color-mix(in srgb, var(--accent) 60%, transparent); }
+      .level { font-size: 26px; font-weight: 800; }
+      .flames { font-size: 22px; letter-spacing: 2px; }
+      .track { height: 22px; border-radius: 999px; background: rgba(0,0,0,.45); overflow: hidden; box-shadow: inset 0 2px 6px rgba(0,0,0,.6); }
+      .fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #ffd21e, var(--accent)); box-shadow: 0 0 18px -2px var(--accent); transition: width .5s cubic-bezier(.2,.9,.25,1); }
+      #hype.levelup .card { animation: pop .6s ease; }
+      @keyframes pop { 0% { transform: scale(1); } 30% { transform: scale(1.06); } 100% { transform: scale(1); } }
+    </style>
+  </head>
+  <body>
+    <div id="hype">
+      <div class="card">
+        <div class="head">
+          <span class="title" id="h-title">Hype</span>
+          <span class="level">LVL <span id="h-level">1</span></span>
+        </div>
+        <div class="flames" id="h-flames">🔥</div>
+        <div class="track"><div class="fill" id="h-fill"></div></div>
+      </div>
+    </div>
+    <script>
+      const root = document.getElementById("hype");
+      let hideTimer = null;
+      // Escalating hue: orange → red as levels climb.
+      const accentFor = (lvl) => `hsl(${Math.max(0, 32 - (lvl - 1) * 8)}, 95%, 52%)`;
+
+      function render(s) {
+        if (!s || !s.active) { root.classList.remove("on"); return; }
+        const lvl = s.level || 1;
+        root.style.setProperty("--accent", accentFor(lvl));
+        document.getElementById("h-title").textContent = s.source === "twitch" ? "Hype Train" : "Combo";
+        document.getElementById("h-level").textContent = lvl;
+        document.getElementById("h-flames").textContent = "🔥".repeat(Math.min(8, lvl));
+        document.getElementById("h-fill").style.width = Math.round((s.progress || 0) * 100) + "%";
+        root.classList.add("on");
+        if (s.levelUp) {
+          root.classList.remove("levelup"); void root.offsetWidth; root.classList.add("levelup");
+        }
+        // Combo has server-side decay; this is just a safety hide.
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => root.classList.remove("on"), (s.source === "twitch" ? 16 : 6) * 60 * 1000);
+      }
+
+      fetch("/api/hype").then((r) => r.json()).then(render).catch(() => {});
+      (function connect() {
+        const proto = location.protocol === "https:" ? "wss" : "ws";
+        const ws = new WebSocket(`${proto}://${location.host}/ws`);
+        ws.onmessage = (e) => { try { const d = JSON.parse(e.data); if (d.kind === "hype") render(d); } catch {} };
+        ws.onclose = () => setTimeout(connect, 2000);
+        ws.onerror = () => ws.close();
+      })();
+    </script>
+  </body>
+</html>

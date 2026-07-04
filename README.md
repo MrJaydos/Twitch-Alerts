@@ -169,6 +169,12 @@ These enhance the **modern overlay** (`/overlay.html`):
 - **Goal bars** — add `/goals.html` as its own Browser Source for sub / follower
   progress bars. Counts auto-increment on live events and persist; set the
   target/label and reset the count on the settings page.
+- **Hype / combo meter** — add `/hype.html` as its own Browser Source. When your
+  account is connected, real Twitch **Hype Trains** drive it (level + progress
+  via EventSub `channel.hype_train.*`, scope `channel:read:hype_train`).
+  Otherwise a **combo meter** builds from rapid subs/gifts/bits (configurable
+  points per sub / per 100 bits / per level) and empties after a quiet period.
+  It escalates orange→red and bursts on level-up.
 
 ## Filtering & anti-spam
 

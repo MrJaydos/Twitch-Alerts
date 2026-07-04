@@ -182,6 +182,27 @@
         </div>
       </section>
 
+      <section class="card">
+        <h2>Hype / combo meter</h2>
+        <p class="hint">
+          Add <strong>/hype.html</strong> as its own OBS Browser Source. Real
+          Twitch <strong>Hype Trains</strong> drive it when your account is
+          connected; otherwise a combo meter builds from rapid subs/gifts/bits
+          and empties after a quiet period.
+        </p>
+        <div class="row">
+          <input id="hype-url" type="text" readonly />
+          <button id="copy-hype-url" class="ghost">Copy</button>
+        </div>
+        <div class="grid" style="margin-top:12px">
+          <label class="inline-check">Enable combo meter<input type="checkbox" id="hype-enabled" /></label>
+          <label>Points per sub / gift<input type="number" id="hype-persub" min="0" /></label>
+          <label>Points per 100 bits<input type="number" id="hype-perbits" min="0" /></label>
+          <label>Points per level<input type="number" id="hype-levelpoints" min="1" /></label>
+          <label>Reset after quiet (seconds)<input type="number" id="hype-decay" min="10" /></label>
+        </div>
+      </section>
+
       <section id="alerts"></section>
 
       <div class="save-bar">

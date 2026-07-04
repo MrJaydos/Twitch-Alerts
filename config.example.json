@@ -173,5 +173,12 @@
       "target": 100
     }
   },
+  "hype": {
+    "enabled": true,
+    "pointsPerSub": 100,
+    "pointsPerHundredBits": 100,
+    "levelPoints": 500,
+    "decaySeconds": 300
+  },
   "seenRaiders": []
 }
