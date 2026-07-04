@@ -76,10 +76,33 @@ is the sub/cheer/raid dedup mechanism between the two sources.
   answers the Flash socket-policy request, sends a minimal `{"type":"refreshConfig"}`
   to unlock the built-in animations, then feeds `subAlert`/`followAlert`/
   `cheerAlert`/`hostAlert` messages. The widget renders on **green** for OBS
-  chroma key; `widget.html` masks its persistent chrome (donation bars/news) with
-  green and drops the masks during any alert. **The modern-overlay-only features
-  (variations, goals, first-chat, per-type styles) do not affect the widget** —
-  it draws its own compiled animations.
+  chroma key. The SWF's built-in donation-goal bar and news ticker are patched
+  out at the AS3 level (see "Widget SWF patching" below), so `widget.html` is
+  just the Ruffle player — no CSS masking, no `/ws` subscription of its own.
+  **The modern-overlay-only features (variations, goals, first-chat, per-type
+  styles) do not affect the widget** — it draws its own compiled animations.
+
+## Widget SWF patching
+
+`public/widget/lachhhWidget.swf` is a compiled AS3 SWF (no source in this
+repo). It originally always booted `MainGame.startNormalDonation()`, which —
+besides wiring up the alert-handling socket listener — also spawned the
+original tool's built-in donation-goal bar (`UI_DonationWidget`) and
+promotional news ticker (`UI_News`, an ad/self-promo carousel unrelated to
+alerts). That boot call was repointed to the SWF's own
+`startNormalDonationWithoutNewsAndWidget()` method (same class,
+`com.flashinit.ReleaseDonationInit`), which skips both chrome widgets while
+leaving the alert listener (`LogicAddDonation`) untouched — confirmed via
+decompiled AS3 diff that no alert-handling code path was touched.
+
+To re-patch or inspect further: decompile/recompile with JPEXS FFDec
+(`ffdec-cli.jar`, needs a JRE — no Java/FFDec install is assumed on this
+machine, download portable copies if needed). `-export script <dir>
+lachhhWidget.swf` pulls AS3 source; after editing, `-importScript
+lachhhWidget.swf out.swf <dir>` rebuilds the SWF. It's a binary, un-diffable
+asset, so verify visually — load `widget.html` (or a bare Ruffle player
+pointed at the file) in a real browser or headless Chrome via CDP, and
+screenshot both idle and mid-alert.
 
 ## Config model (`server/config.js`)
 
@@ -104,6 +127,13 @@ server-held secrets from being clobbered by the sanitized payload.
   changes the user still may need to Refresh the OBS Browser Source once.
 - Ships a `Dockerfile` + `docker-compose.yml`; on Coolify mount a volume at
   `/data` (config is written to `CONFIG_PATH=/data/config.json`).
+
+## Workflow
+
+There's no CI or staging environment — `main` auto-deploys to Coolify on
+push. After making a change (and sanity-checking it), commit and push to
+`main` directly without asking for confirmation first; that's the only way
+changes reach the user's environment for testing.
 
 ## Conventions
 

@@ -14,23 +14,10 @@
         position: absolute; top: 50%; left: 50%;
         width: 1280px; height: 720px; transform-origin: center center;
       }
-      /* Green masks over the widget's built-in chrome (ads, donation bars,
-         news, mascot). They key out with the background in OBS.
-         - #mask-full covers everything while idle (nothing shows between alerts)
-           and drops for the duration of any alert.
-         - #mask-bottom covers the always-on bottom bars; it stays up during
-           centered alerts (subs/gifts) but drops for bottom-anchored ones
-           (follow/cheer/raid) so they aren't clipped. */
-      .cmask { position: absolute; background: #00ff00; transition: opacity 0.25s ease; pointer-events: none; }
-      #mask-full { inset: 0; }
-      #mask-bottom { left: 0; right: 0; bottom: 0; height: 20%; }
-      .cmask.reveal { opacity: 0; }
     </style>
   </head>
   <body>
     <div id="stage"></div>
-    <div id="mask-full" class="cmask"></div>
-    <div id="mask-bottom" class="cmask"></div>
     <script src="/widget/ruffle/ruffle.js"></script>
     <script>
       const STAGE_W = 1280, STAGE_H = 720;
@@ -60,32 +47,6 @@
         fit();
         player.load({ url: "/widget/lachhhWidget.swf", autoplay: "on", muted: false, unmuteOverlay: "hidden", allowScriptAccess: true });
       });
-
-      // Masks hide the widget's chrome while idle. On an alert, drop the full
-      // mask; also drop the bottom strip only for bottom-anchored alert types
-      // (which use that space), keeping the donation bars hidden otherwise.
-      const maskFull = document.getElementById("mask-full");
-      const maskBottom = document.getElementById("mask-bottom");
-      const BOTTOM_ANCHORED = new Set(["follow", "cheer", "raid"]);
-      const timers = new WeakMap();
-      function revealEl(el, ms) {
-        el.classList.add("reveal");
-        clearTimeout(timers.get(el));
-        timers.set(el, setTimeout(() => el.classList.remove("reveal"), ms));
-      }
-      (function connectFeed() {
-        const ws = new WebSocket(`${wsProto}://${location.host}/ws`);
-        ws.onmessage = (e) => {
-          try {
-            const d = JSON.parse(e.data);
-            if (d.kind !== "alert") return;
-            revealEl(maskFull, 10000);
-            if (BOTTOM_ANCHORED.has(d.event.type)) revealEl(maskBottom, 10000);
-          } catch {}
-        };
-        ws.onclose = () => setTimeout(connectFeed, 2000);
-        ws.onerror = () => ws.close();
-      })();
     </script>
   </body>
 </html>
