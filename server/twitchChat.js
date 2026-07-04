@@ -18,6 +18,7 @@ export class TwitchChat {
     this.status = "disconnected";
     this.shouldRun = false;
     this.shouldSuppress = null; // (type) => bool; set by the server for EventSub dedupe
+    this.onChatLine = null; // (parsed) => void; called for every parsed line, alert or not
   }
 
   setChannel(channel) {
@@ -71,7 +72,9 @@ export class TwitchChat {
           continue;
         }
         try {
-          const alert = toAlert(parseLine(line));
+          const parsed = parseLine(line);
+          if (this.onChatLine) this.onChatLine(parsed);
+          const alert = toAlert(parsed);
           if (alert) {
             // Skip types EventSub is already delivering (avoids double alerts).
             if (this.shouldSuppress && this.shouldSuppress(alert.type)) continue;

@@ -390,6 +390,7 @@ function connect() {
         queue.push(data);
         playNext();
       } else if (data.kind === "ttsSkip") stopSpeech();
+      else if (data.kind === "ttsTest") speak(data.text, data.tts);
     } catch { /* ignore */ }
   };
   ws.onclose = () => setTimeout(connect, 2000);

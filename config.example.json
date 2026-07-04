@@ -194,5 +194,17 @@
     "sub": 1,
     "host": 1,
     "cheer": 1
+  },
+  "spook": {
+    "enabled": false,
+    "command": "!spook",
+    "cooldownSeconds": 10
+  },
+  "emoteCombo": {
+    "enabled": false,
+    "threshold": 5,
+    "windowSeconds": 8,
+    "cooldownSeconds": 20,
+    "burstSize": 10
   }
 }

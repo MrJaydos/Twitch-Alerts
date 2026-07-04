@@ -135,6 +135,10 @@
             <textarea id="tts-muted" rows="2" placeholder="troublemaker1, troublemaker2"></textarea>
           </label>
         </div>
+        <div class="row" style="margin-top:12px">
+          <input id="tts-test-text" type="text" placeholder="Type something to hear it spoken…" style="flex:1" />
+          <button id="tts-test" class="ghost" type="button">Speak</button>
+        </div>
       </section>
 
       <section class="card">
@@ -218,6 +222,44 @@
           <label>Subscriber (incl. resub / gift)<input type="range" id="wv-sub" min="0" max="1" step="0.05" /></label>
           <label>Raid<input type="range" id="wv-host" min="0" max="1" step="0.05" /></label>
           <label>Cheer / Bits<input type="range" id="wv-cheer" min="0" max="1" step="0.05" /></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Widget-only extras ⚠️ experimental — off by default</h2>
+        <p class="hint">
+          Two more alerts built into the original widget's compiled
+          animations, unrelated to Twitch events — they only render on
+          <strong>widget.html</strong>, driven by chat rather than the modern
+          overlay's style system.
+        </p>
+        <p class="hint" style="color:#ff5c5c">
+          <strong>Known issue:</strong> triggering either of these reliably
+          corrupts whatever alert plays right after it (confirmed in testing —
+          not a fluke). Leave disabled for a live stream; only enable to help
+          investigate further.
+        </p>
+        <div class="grid">
+          <label class="inline-check">Enable Halloween spook<input type="checkbox" id="spook-enabled" /></label>
+          <label>Chat command (mods/broadcaster only)<input type="text" id="spook-command" placeholder="!spook" /></label>
+          <label>Cooldown (seconds)<input type="number" id="spook-cooldown" min="0" step="1" /></label>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button id="spook-test" class="ghost" type="button">Test spook</button>
+        </div>
+        <div class="grid" style="margin-top:16px">
+          <label class="inline-check">Enable emote fireworks<input type="checkbox" id="emote-enabled" /></label>
+          <label>Trigger after this many uses<input type="number" id="emote-threshold" min="1" step="1" /></label>
+          <label>...within this many seconds<input type="number" id="emote-window" min="1" step="1" /></label>
+          <label>Cooldown per emote (seconds)<input type="number" id="emote-cooldown" min="0" step="1" /></label>
+          <label>Fireworks per trigger<input type="number" id="emote-burst" min="1" max="30" step="1" /></label>
+        </div>
+        <p class="hint">
+          Auto-fires when the same chat emote gets spammed enough times in a
+          row. "Test fireworks" below always uses Kappa to preview it.
+        </p>
+        <div class="row" style="margin-top:8px">
+          <button id="emote-test" class="ghost" type="button">Test fireworks</button>
         </div>
       </section>
 

@@ -183,3 +183,28 @@ export function toAlert(parsed) {
       return null;
   }
 }
+
+/** True if a PRIVMSG's tags belong to the broadcaster or a moderator. */
+export function isModOrBroadcaster(tags) {
+  if (!tags) return false;
+  if (tags.mod === "1") return true;
+  const badges = tags.badges || "";
+  return badges.includes("broadcaster/") || badges.includes("moderator/");
+}
+
+/**
+ * Parse a PRIVMSG `emotes` tag (`id:start-end,start-end/id2:start-end`) into
+ * `{ [emoteId]: occurrenceCount }`. Returns {} for messages with no emotes.
+ */
+export function parseEmotesTag(emotesTag) {
+  const counts = {};
+  if (!emotesTag) return counts;
+  for (const part of emotesTag.split("/")) {
+    const [idStr, ranges] = part.split(":");
+    const id = idStr && idStr.trim();
+    if (!id) continue;
+    const occurrences = ranges ? ranges.split(",").filter(Boolean).length : 0;
+    if (occurrences > 0) counts[id] = (counts[id] || 0) + occurrences;
+  }
+  return counts;
+}

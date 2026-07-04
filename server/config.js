@@ -219,6 +219,29 @@ export const DEFAULT_CONFIG = {
     sub: 1,
     host: 1, // raids
     cheer: 1
+  },
+  // Two extra widget-only alerts, driven by chat rather than Twitch events.
+  // Both use compiled-in SWF animations that were never wired up before —
+  // there's no modern-overlay equivalent, they only render on the widget.
+  //
+  // DEFAULT OFF: sending either message type to the widget reliably corrupts
+  // whatever alert renders *after* it (confirmed via headless testing — not
+  // a timing fluke). Halloween spook and emote fireworks each break the next
+  // alert in a different way, even with a no-op AS3 handler, which rules out
+  // our own patch logic and points to something deeper in the compiled
+  // widget/Ruffle we could not isolate further. Do not enable in production
+  // without re-testing; see CLAUDE.md "Widget-only extras" for details.
+  spook: {
+    enabled: false,
+    command: "!spook",     // chat command, mods/broadcaster only
+    cooldownSeconds: 10    // minimum time between triggers
+  },
+  emoteCombo: {
+    enabled: false,
+    threshold: 5,          // occurrences of the same emote to trigger
+    windowSeconds: 8,       // ...within this many seconds
+    cooldownSeconds: 20,   // minimum time between fireworks for the same emote
+    burstSize: 10          // how many firework instances spawn per trigger
   }
 };
 

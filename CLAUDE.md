@@ -118,6 +118,29 @@ already-loaded browsers/OBS sources — they'll keep the old binary for up to a
 week. `widget.html` loads it as `/widget/lachhhWidget.swf?vN` — bump `N`
 every time the SWF is replaced so the URL actually changes.
 
+### Widget-only extras (spook, emote fireworks) — disabled by default, known-broken
+
+`LogicAddDonation.handleMsg()` in the SWF has working cases for message types
+the server never used: `halloweenSpook` (plays `UI_Charity.playSpook()`, a
+jump-scare) and `emoteFirework` (spawns `EmoteFirework` instances loaded from
+Twitch's emote CDN by numeric ID). `server/emoteCombo.js` and the chat-command
+handling in `server/index.js` (`onChatLine`, `triggerSpook`) detect when to
+fire them — that part works and is safe. **Actually sending either message
+type to the widget is not**: confirmed via headless-Chrome testing that
+whichever alert plays *after* one of these two corrupts — a Halloween spook
+permanently stalls the AS3 command queue (no further alerts ever render again
+on that connection) and an emote firework burst causes the *next* alert to
+render an unrelated starter-kit splash screen instead of itself. Both
+reproduced with the handler code reduced to a no-op / the switch case emptied
+entirely, which rules out our AS3 edits (`UI_Charity.isTemp`,
+`MetaCmdPlayHalloweenAlert`) as the cause — something deeper in the compiled
+widget or Ruffle's socket/AVM2 handling breaks when either message type is
+received, and it wasn't isolated further. `config.spook.enabled` and
+`config.emoteCombo.enabled` default to `false`; don't flip them on for a live
+stream without re-verifying (fire one, then fire a normal test alert
+afterward and confirm it still renders) — see git history around this comment
+for the failed debugging session if picking this back up.
+
 ## Config model (`server/config.js`)
 
 Single source of truth. `loadConfig()` deep-merges `DEFAULT_CONFIG` with the

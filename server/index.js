@@ -7,9 +7,10 @@ import crypto from "node:crypto";
 import { loadConfig, saveConfig, getConfigPath } from "./config.js";
 import { TwitchChat } from "./twitchChat.js";
 import { EventSub } from "./eventsub.js";
-import { parseLine, toAlert } from "./ircParser.js";
+import { parseLine, toAlert, isModOrBroadcaster, parseEmotesTag } from "./ircParser.js";
 import { processEvent } from "./pipeline.js";
 import { HypeTracker } from "./hype.js";
+import { EmoteCombo } from "./emoteCombo.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = join(__dirname, "..", "public");
@@ -204,11 +205,69 @@ function widgetRefreshConfigPayload() {
   };
 }
 
-function sendWidgetRefreshConfig() {
-  const data = Buffer.from(JSON.stringify(widgetRefreshConfigPayload()) + "\n");
+// Send a raw JSON message to every connected widget (Ruffle's Flash socket).
+function sendWidgetMessage(payload) {
+  const data = Buffer.from(JSON.stringify(payload) + "\n");
   for (const ws of widgetWss.clients) {
     if (ws.readyState === ws.OPEN) ws.send(data);
   }
+}
+
+function sendWidgetRefreshConfig() {
+  sendWidgetMessage(widgetRefreshConfigPayload());
+}
+
+// --- Widget-only alerts ---------------------------------------------------
+// These two are driven by chat, not by normalized Twitch events, and only
+// ever render on the original widget (no modern-overlay equivalent) — they
+// use compiled-in SWF animations (Halloween spook, emote fireworks) that
+// were never wired up before. They bypass handleAlert()/resolveAlert()
+// entirely since there's no config.alerts block or overlay style involved.
+
+let lastSpookAt = 0;
+function triggerSpook(source) {
+  const cfg = loadConfig().spook || {};
+  if (!cfg.enabled) return false;
+  const now = Date.now();
+  const cooldownMs = (cfg.cooldownSeconds ?? 10) * 1000;
+  if (now - lastSpookAt < cooldownMs) return false;
+  lastSpookAt = now;
+  sendWidgetMessage({ type: "halloweenSpook" });
+  recordEvent({ time: now, type: "spook", name: "", detail: source, source, fired: true });
+  console.log(`[spook] triggered (${source})`);
+  return true;
+}
+
+const emoteCombo = new EmoteCombo(
+  () => loadConfig().emoteCombo,
+  (emoteId, count) => {
+    const cfg = loadConfig().emoteCombo || {};
+    const burst = Math.max(1, Math.min(cfg.burstSize ?? 10, 30));
+    const payload = { type: "emoteFirework" };
+    for (let i = 0; i < burst; i++) payload["emote" + i] = Number(emoteId);
+    sendWidgetMessage(payload);
+    recordEvent({
+      time: Date.now(), type: "emoteCombo", name: "",
+      detail: `emote ${emoteId} x${count}`, source: "twitch", fired: true
+    });
+    console.log(`[emote] firework: ${emoteId} x${burst} (seen ${count}x)`);
+  }
+);
+
+// Inspect every chat line (not just recognized alerts) for the spook command
+// and emote-combo tracking.
+function onChatLine(parsed) {
+  if (!parsed || parsed.command !== "PRIVMSG") return;
+  const cfg = loadConfig();
+  const spookCfg = cfg.spook || {};
+  if (spookCfg.enabled && isModOrBroadcaster(parsed.tags)) {
+    const command = (spookCfg.command || "!spook").toLowerCase();
+    if ((parsed.trailing || "").trim().toLowerCase() === command) {
+      triggerSpook("chat");
+      return;
+    }
+  }
+  emoteCombo.handleEmoteCounts(parseEmotesTag(parsed.tags.emotes));
 }
 
 widgetWss.on("connection", (ws) => {
@@ -372,6 +431,7 @@ const hype = new HypeTracker(broadcast);
 
 const chat = new TwitchChat(handleAlert);
 chat.setChannel(loadConfig().channel);
+chat.onChatLine = onChatLine;
 
 const eventsub = new EventSub(handleAlert);
 eventsub.start();
@@ -544,9 +604,36 @@ app.get("/api/events", (req, res) => {
   res.json({ events: eventLog.slice().reverse() });
 });
 
+// Manually fire the widget-only Halloween spook / emote firework (bypasses
+// the chat command / combo-detection so they can be previewed on demand).
+app.post("/api/spook-test", (req, res) => {
+  const fired = triggerSpook("test");
+  res.json({ ok: true, fired });
+});
+
+app.post("/api/emote-test", (req, res) => {
+  const cfg = loadConfig().emoteCombo || {};
+  if (!cfg.enabled) return res.json({ ok: true, fired: false });
+  const burst = Math.max(1, Math.min(cfg.burstSize ?? 10, 30));
+  const emoteId = parseInt(req.body && req.body.emoteId, 10) || 25; // Kappa
+  const payload = { type: "emoteFirework" };
+  for (let i = 0; i < burst; i++) payload["emote" + i] = emoteId;
+  sendWidgetMessage(payload);
+  res.json({ ok: true, emoteId, burst });
+});
+
 // Stop any TTS currently playing on the overlay(s).
 app.post("/api/tts/skip", (req, res) => {
   broadcast({ kind: "ttsSkip" });
+  res.json({ ok: true });
+});
+
+// Speak arbitrary text on the modern overlay, using the saved TTS settings —
+// lets you preview voice/volume without needing to fire a whole alert.
+app.post("/api/tts/test", (req, res) => {
+  const text = ((req.body && req.body.text) || "").trim();
+  if (!text) return res.status(400).json({ ok: false, error: "No text provided" });
+  broadcast({ kind: "ttsTest", text, tts: loadConfig().tts });
   res.json({ ok: true });
 });
 
@@ -557,7 +644,9 @@ app.post("/api/replay", (req, res) => {
   if (!line) return res.status(400).json({ ok: false, error: "No line provided" });
   let alert = null;
   try {
-    alert = toAlert(parseLine(line));
+    const parsed = parseLine(line);
+    onChatLine(parsed); // also exercises the spook command / emote-combo detector
+    alert = toAlert(parsed);
   } catch (err) {
     return res.status(400).json({ ok: false, error: "Parse error: " + err.message });
   }

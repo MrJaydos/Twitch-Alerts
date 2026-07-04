@@ -106,6 +106,17 @@ function collectFromDom() {
     config.goals[key].current = Number(el(`#goal-${key}-current`).value) || 0;
     config.goals[key].target = Number(el(`#goal-${key}-target`).value) || 1;
   }
+  // Widget-only extras
+  config.spook = config.spook || {};
+  config.spook.enabled = el("#spook-enabled").checked;
+  config.spook.command = el("#spook-command").value.trim() || "!spook";
+  config.spook.cooldownSeconds = Number(el("#spook-cooldown").value) || 0;
+  config.emoteCombo = config.emoteCombo || {};
+  config.emoteCombo.enabled = el("#emote-enabled").checked;
+  config.emoteCombo.threshold = Number(el("#emote-threshold").value) || 1;
+  config.emoteCombo.windowSeconds = Number(el("#emote-window").value) || 1;
+  config.emoteCombo.cooldownSeconds = Number(el("#emote-cooldown").value) || 0;
+  config.emoteCombo.burstSize = Number(el("#emote-burst").value) || 1;
   // Original widget volume
   config.widgetVolume = config.widgetVolume || {};
   config.widgetVolume.follow = Number(el("#wv-follow").value);
@@ -319,6 +330,13 @@ async function init() {
   el("#tts-profanity").checked = tts.filterProfanity !== false;
   el("#tts-muted").value = (tts.mutedUsers || []).join(", ");
   el("#tts-skip").addEventListener("click", () => fetch("/api/tts/skip", { method: "POST" }));
+  el("#tts-test").addEventListener("click", async () => {
+    const text = el("#tts-test-text").value.trim();
+    if (!text) return;
+    collectFromDom();
+    await api("/api/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(config) });
+    await api("/api/tts/test", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+  });
 
   // Filters
   const flt = config.filters || {};
@@ -338,6 +356,28 @@ async function init() {
     el(`#goal-${key}-current`).value = g.current || 0;
     el(`#goal-${key}-target`).value = g.target || 1;
   }
+
+  // Widget-only extras
+  const spook = config.spook || {};
+  el("#spook-enabled").checked = spook.enabled !== false;
+  el("#spook-command").value = spook.command || "!spook";
+  el("#spook-cooldown").value = spook.cooldownSeconds ?? 10;
+  el("#spook-test").addEventListener("click", async () => {
+    collectFromDom();
+    await api("/api/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(config) });
+    await api("/api/spook-test", { method: "POST" });
+  });
+  const ec = config.emoteCombo || {};
+  el("#emote-enabled").checked = ec.enabled !== false;
+  el("#emote-threshold").value = ec.threshold ?? 5;
+  el("#emote-window").value = ec.windowSeconds ?? 8;
+  el("#emote-cooldown").value = ec.cooldownSeconds ?? 20;
+  el("#emote-burst").value = ec.burstSize ?? 10;
+  el("#emote-test").addEventListener("click", async () => {
+    collectFromDom();
+    await api("/api/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(config) });
+    await api("/api/emote-test", { method: "POST" });
+  });
 
   // Original widget volume
   const wv = config.widgetVolume || {};
