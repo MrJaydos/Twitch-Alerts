@@ -92,8 +92,15 @@ promotional news ticker (`UI_News`, an ad/self-promo carousel unrelated to
 alerts). That boot call was repointed to the SWF's own
 `startNormalDonationWithoutNewsAndWidget()` method (same class,
 `com.flashinit.ReleaseDonationInit`), which skips both chrome widgets while
-leaving the alert listener (`LogicAddDonation`) untouched — confirmed via
-decompiled AS3 diff that no alert-handling code path was touched.
+leaving the alert listener (`LogicAddDonation`) untouched.
+
+Two other classes independently resurrect `UI_News` after they finish, so the
+boot-time fix alone wasn't enough: `MetaCmdPlayHostAlert.onAnimEnded()` (runs
+after every raid/host alert) and `MetaCmdAddDonation.onEndDonation()` (runs
+after a donation, not currently reachable since this server never sends a
+`newDonation` message — patched anyway for when/if it is). Both `MainGame.
+instance.createNews();` calls were deleted. `UI_DonationWidget` has no other
+instantiation site, so the boot-time fix fully covers it.
 
 To re-patch or inspect further: decompile/recompile with JPEXS FFDec
 (`ffdec-cli.jar`, needs a JRE — no Java/FFDec install is assumed on this
@@ -102,7 +109,14 @@ lachhhWidget.swf` pulls AS3 source; after editing, `-importScript
 lachhhWidget.swf out.swf <dir>` rebuilds the SWF. It's a binary, un-diffable
 asset, so verify visually — load `widget.html` (or a bare Ruffle player
 pointed at the file) in a real browser or headless Chrome via CDP, and
-screenshot both idle and mid-alert.
+screenshot both idle and mid-alert (including after the alert ends, since the
+resurrection bug above only showed up post-alert).
+
+**Cache-busting**: `.swf` is served with a week-long `Cache-Control` (see
+`server/index.js`), so replacing the file under the same URL won't reach
+already-loaded browsers/OBS sources — they'll keep the old binary for up to a
+week. `widget.html` loads it as `/widget/lachhhWidget.swf?vN` — bump `N`
+every time the SWF is replaced so the URL actually changes.
 
 ## Config model (`server/config.js`)
 

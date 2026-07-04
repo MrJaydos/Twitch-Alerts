@@ -45,7 +45,10 @@
         player = ruffle.createPlayer();
         document.getElementById("stage").appendChild(player);
         fit();
-        player.load({ url: "/widget/lachhhWidget.swf", autoplay: "on", muted: false, unmuteOverlay: "hidden", allowScriptAccess: true });
+        // Cache-busting query: bump this whenever lachhhWidget.swf is replaced.
+        // The file is served with a week-long Cache-Control (see server/index.js),
+        // so browsers/OBS won't otherwise notice a same-URL binary swap.
+        player.load({ url: "/widget/lachhhWidget.swf?v=3", autoplay: "on", muted: false, unmuteOverlay: "hidden", allowScriptAccess: true });
       });
     </script>
   </body>
