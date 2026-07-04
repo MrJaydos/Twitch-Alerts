@@ -1,0 +1,115 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+A self-hostable Twitch stream-alerts app: a Node server reads Twitch events and
+drives **two** OBS browser-source overlays. It's a modern recreation of the
+alerts portion of the defunct Flash tool **LachhhTools** (the original repo:
+`Lachhh/LachhhTools`, an Adobe Flash / AS3 project — kept for reference, not a
+dependency).
+
+## Commands
+
+```bash
+npm install
+npm start        # node server/index.js  (PORT env or 3000)
+npm run dev      # same, with --watch auto-reload
+```
+
+There is **no build step, no linter, and no test suite.** To verify overlay
+changes, drive them with headless Chromium (Playwright is available in this
+environment via `playwright-core`, Chromium at `/opt/pw-browsers/chromium-*`):
+start the server on a spare port, open `/overlay.html` or `/widget.html`, fire
+an event via `POST /api/test {type}` or `POST /api/replay {line}`, and
+screenshot. The server logs every alert and pipeline decision.
+
+Server-side logic (parser, pipeline, EventSub mapping) is best exercised by
+importing the module and calling the function directly with a synthetic event,
+or by `POST /api/replay` with a raw IRC line.
+
+Config lives in `config.json` (git-ignored, created on first save). Delete it to
+reset. `config.example.json` is generated from `DEFAULT_CONFIG` — regenerate
+after changing the schema:
+`node -e 'import("./server/config.js").then(m=>require("fs").writeFileSync("config.example.json",JSON.stringify({...m.DEFAULT_CONFIG,channel:"your_channel_name"},null,2)+"\n"))'`
+
+## Architecture — the event spine
+
+Everything funnels through **one function, `handleAlert(event, source)` in
+`server/index.js`.** Understanding the flow across these files is the key to the
+codebase:
+
+1. **Sources** produce a *normalized event* (`{ type, name, login, ... }`):
+   - `server/twitchChat.js` — anonymous Twitch IRC over WebSocket (no auth).
+     Parses lines with `server/ircParser.js` (`parseLine` → `toAlert`). Covers
+     subs/resubs/gifts/cheers/raids/first-chat.
+   - `server/eventsub.js` — Twitch EventSub WebSocket (needs OAuth). Covers
+     follows plus subs/resubs/cheers/raids when connected.
+   - `POST /api/test` and `POST /api/replay` (test/replay sources).
+2. **`handleAlert`** runs the event through `server/pipeline.js` `processEvent`
+   (ignore-list, thresholds, gift-bomb grouping, dedupe, TTS gating +
+   profanity), then applies returning-raider flag, `resolveAlert` (which config
+   block styles it), and `applyVariations`.
+3. **Two sinks**, both fed from the same event:
+   - `broadcast()` → `/ws` WebSocket → **`public/overlay.html`** (the modern
+     CSS/SVG overlay) and `public/goals.html`.
+   - `feedWidget()` → `/widget-socket` WebSocket → **`public/widget.html`** (the
+     original `lachhhWidget.swf` running in Ruffle). `toWidgetMessage()`
+     translates the normalized event into the widget's socket JSON protocol.
+
+Normalized event `type` values: `follow, sub, resub, giftsub, giftbomb, cheer,
+raid, firstchat`. Gifts intentionally stay on the **chat** path (EventSub's gift
+event lacks recipient names), so `eventsub.activeTypes` never includes gifts and
+`chat.shouldSuppress` only suppresses the types EventSub actually delivers — this
+is the sub/cheer/raid dedup mechanism between the two sources.
+
+## The two overlays
+
+- **Modern overlay** (`public/overlay.{html,js,css}`): transparent. Per-type
+  animation "styles" (`banner`, `punch`, `pop`, `cannon`, `rainbow`) built from
+  custom SVG art + a canvas particle engine. Reads the per-alert config `style`
+  block from the broadcast payload; supports variations, TTS, goals.
+- **Original widget** (`public/widget.html` + `public/widget/`): the actual
+  `lachhhWidget.swf` played by the bundled Ruffle Flash emulator. Ruffle proxies
+  the SWF's Flash TCP socket (`127.0.0.1:9231`) to `/widget-socket`; the server
+  answers the Flash socket-policy request, sends a minimal `{"type":"refreshConfig"}`
+  to unlock the built-in animations, then feeds `subAlert`/`followAlert`/
+  `cheerAlert`/`hostAlert` messages. The widget renders on **green** for OBS
+  chroma key; `widget.html` masks its persistent chrome (donation bars/news) with
+  green and drops the masks during any alert. **The modern-overlay-only features
+  (variations, goals, first-chat, per-type styles) do not affect the widget** —
+  it draws its own compiled animations.
+
+## Config model (`server/config.js`)
+
+Single source of truth. `loadConfig()` deep-merges `DEFAULT_CONFIG` with the
+on-disk `config.json` and **caches the result at module level** — `saveConfig()`
+replaces the cache, so always mutate through `saveConfig`, and note that a stale
+in-process cache means the running server won't see external edits to
+`config.json` without a restart. `deepMerge` **replaces arrays wholesale**
+(so `ignoreUsers`, `variations`, `seenRaiders` round-trip by replacement, not
+element merge). The settings page (`public/settings.{html,js}`) reads/writes the
+whole config via `GET`/`POST /api/config`; `sanitizeConfig` strips Twitch
+secrets/tokens before sending to the browser, and `mergeInboundConfig` protects
+server-held secrets from being clobbered by the sanitized payload.
+
+## Auth, caching, deploy
+
+- `ADMIN_PASSWORD` env enables a session-cookie login for the dashboard + config
+  APIs. The overlays and `/ws`/`/widget-socket` stay open (OBS needs them
+  unauthenticated); see `OPEN_PATHS` and the `/fonts/` + `/widget/` prefixes.
+- HTML/JS/CSS are served `no-cache` (OBS caches hard); fonts/images/`.swf`/`.wasm`
+  cache for a week. `.wasm`/`.swf` get explicit content-types. After code
+  changes the user still may need to Refresh the OBS Browser Source once.
+- Ships a `Dockerfile` + `docker-compose.yml`; on Coolify mount a volume at
+  `/data` (config is written to `CONFIG_PATH=/data/config.json`).
+
+## Conventions
+
+- ES modules (`"type": "module"`), Node ≥18, only two runtime deps (`express`,
+  `ws`). Keep it dependency-light. Twitch/StreamElements calls use global `fetch`.
+- When adding an alert type or field: update `ircParser.js`/`eventsub.js` (parse),
+  `pipeline.js` (if it needs filtering), `config.js` `DEFAULT_CONFIG` (block +
+  regenerate example), `toWidgetMessage` (if the widget should show it), the
+  overlay renderer, and the settings UI.
