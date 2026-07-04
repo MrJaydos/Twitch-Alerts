@@ -581,7 +581,8 @@ function buildTestEvent(type, overrides) {
     giftsub: { type: "giftsub", name: "LuckyViewer", gifter: name, tier: "1", months: 1 },
     giftbomb: { type: "giftbomb", name, gifter: name, tier: "1", count: 5 },
     cheer: { type: "cheer", name, bits: 500, message: "cheer500 pog" },
-    raid: { type: "raid", name, viewers: 42 }
+    raid: { type: "raid", name, viewers: 42 },
+    firstchat: { type: "firstchat", name, message: "hey chat!" }
   }[type] || { type: "sub", name, tier: "1", months: 1 };
   return { ...base, ...overrides, type: base.type, raw: { test: true } };
 }
