@@ -43,10 +43,17 @@ codebase:
 1. **Sources** produce a *normalized event* (`{ type, name, login, ... }`):
    - `server/twitchChat.js` — anonymous Twitch IRC over WebSocket (no auth).
      Parses lines with `server/ircParser.js` (`parseLine` → `toAlert`). Covers
-     subs/resubs/gifts/cheers/raids/first-chat.
+     subs/resubs/gifts/cheers/raids/first-chat. Every parsed line (not just
+     ones `toAlert` recognizes) is also handed to `TwitchChat.onChatLine`,
+     wired in `index.js` to `onChatLine()` — this is a second, independent tap
+     on chat used for the widget-only spook/emote-combo detection (see below),
+     not the normalized-event pipeline.
    - `server/eventsub.js` — Twitch EventSub WebSocket (needs OAuth). Covers
      follows plus subs/resubs/cheers/raids when connected.
    - `POST /api/test` and `POST /api/replay` (test/replay sources).
+     `buildTestEvent()`'s type map needs an entry per alert type — a missing
+     one silently falls back to firing a `sub` event instead (bit us once
+     with `firstchat`), so add one whenever a new normalized type is added.
 2. **`handleAlert`** runs the event through `server/pipeline.js` `processEvent`
    (ignore-list, thresholds, gift-bomb grouping, dedupe, TTS gating +
    profanity), then applies returning-raider flag, `resolveAlert` (which config
@@ -73,14 +80,23 @@ is the sub/cheer/raid dedup mechanism between the two sources.
 - **Original widget** (`public/widget.html` + `public/widget/`): the actual
   `lachhhWidget.swf` played by the bundled Ruffle Flash emulator. Ruffle proxies
   the SWF's Flash TCP socket (`127.0.0.1:9231`) to `/widget-socket`; the server
-  answers the Flash socket-policy request, sends a minimal `{"type":"refreshConfig"}`
-  to unlock the built-in animations, then feeds `subAlert`/`followAlert`/
-  `cheerAlert`/`hostAlert` messages. The widget renders on **green** for OBS
-  chroma key. The SWF's built-in donation-goal bar and news ticker are patched
-  out at the AS3 level (see "Widget SWF patching" below), so `widget.html` is
-  just the Ruffle player — no CSS masking, no `/ws` subscription of its own.
-  **The modern-overlay-only features (variations, goals, first-chat, per-type
-  styles) do not affect the widget** — it draws its own compiled animations.
+  answers the Flash socket-policy request, sends a `refreshConfig` message
+  (built by `widgetRefreshConfigPayload()`) to unlock the built-in animations
+  and set per-alert-type volume (`config.widgetVolume`, see below), then feeds
+  `subAlert`/`followAlert`/`cheerAlert`/`hostAlert` messages. The widget
+  renders on **green** for OBS chroma key. The SWF's built-in donation-goal bar
+  and news ticker are patched out at the AS3 level (see "Widget SWF patching"
+  below), so `widget.html` is just the Ruffle player — no CSS masking, no
+  `/ws` subscription of its own. **The modern-overlay-only features
+  (variations, goals, first-chat, per-type styles) do not affect the widget**
+  — it draws its own compiled animations.
+  - `config.widgetVolume` (`follow`/`sub`/`host`/`cheer`, each 0-1): the
+    compiled widget's *own* sound mix — separate from `alerts.*.soundVolume`,
+    which only drives the modern overlay's audio. Its sub sound ships much
+    louder than the rest by default; this is the knob for that. Sent via
+    `refreshConfig`'s `metaCustomAnim.*.volume` fields, re-sent to every
+    connected widget on `POST /api/config` (`sendWidgetRefreshConfig()`) so
+    changes apply live without an OBS refresh.
 
 ## Widget SWF patching
 
@@ -153,6 +169,10 @@ element merge). The settings page (`public/settings.{html,js}`) reads/writes the
 whole config via `GET`/`POST /api/config`; `sanitizeConfig` strips Twitch
 secrets/tokens before sending to the browser, and `mergeInboundConfig` protects
 server-held secrets from being clobbered by the sanitized payload.
+
+`POST /api/tts/test` (`{text}`) broadcasts a `ttsTest` kind over `/ws`, which
+`overlay.js` speaks via the same `speak()` function real alerts use — lets the
+settings page preview voice/volume without needing to fire a whole alert.
 
 ## Auth, caching, deploy
 
