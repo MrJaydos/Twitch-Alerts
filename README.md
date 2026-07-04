@@ -36,8 +36,10 @@ both from the same Twitch events):
   the rock-hands host/raid, original fonts and sounds. It renders on a **green
   background** — add an OBS **Chroma Key** filter (key colour green). The
   widget's own persistent chrome (donation bars, totals, song, ads, news) is
-  auto-masked while idle so **only the alerts show**, and the masks drop during
-  an alert so nothing is clipped.
+  fully masked while idle so **only the alerts show**. The player scales to fill
+  the source (its native stage is 1280×720). During an alert the mask drops; a
+  bottom strip stays masked for centered alerts (subs/gifts) so the donation
+  bars stay hidden, and clears for bottom-anchored ones (follow/cheer/raid).
 - **`/overlay.html` — the modern recreation.** A transparent CSS/SVG overlay
   (no chroma key needed), fully configurable per alert (text, colours, sounds,
   TTS, styles). Good if you want a clean, tweakable look rather than the exact
