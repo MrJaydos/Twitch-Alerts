@@ -47,6 +47,13 @@ both from the same Twitch events):
 
 Both are shown with copy buttons on the settings page.
 
+**Routing per alert:** each alert has a *Render on* setting — **Both**, **Original
+widget only**, or **Modern overlay only**. The widget's built-in chrome only ever
+peeks during its non-fullscreen alerts (follow/cheer/raid), and it can't be
+removed from the compiled SWF. So for a completely chrome-free result, keep
+subs/gifts on the **widget** (fullscreen, already clean) and route
+**follow/cheer/raid to the modern overlay** — then add both as Browser Sources.
+
 ## Alert types
 
 | Type | Source | Notes |

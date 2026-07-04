@@ -41,6 +41,7 @@
     "follow": {
       "enabled": true,
       "style": "pop",
+      "target": "both",
       "duration": 6000,
       "title": "New Follower",
       "message": "{name} just followed!",
@@ -56,6 +57,7 @@
     "sub": {
       "enabled": true,
       "style": "punch",
+      "target": "both",
       "duration": 7000,
       "title": "New Subscriber",
       "message": "{name} subscribed at Tier {tier}!",
@@ -71,6 +73,7 @@
     "resub": {
       "enabled": true,
       "style": "punch",
+      "target": "both",
       "duration": 7000,
       "title": "Resub",
       "message": "{name} resubscribed for {months} months!",
@@ -86,6 +89,7 @@
     "giftsub": {
       "enabled": true,
       "style": "punch",
+      "target": "both",
       "duration": 7000,
       "title": "Gifted Sub",
       "message": "{gifter} gifted a sub to {name}!",
@@ -101,6 +105,7 @@
     "giftbomb": {
       "enabled": true,
       "style": "punch",
+      "target": "both",
       "duration": 8000,
       "title": "Gift Bomb",
       "message": "{gifter} is gifting {count} subs to the community!",
@@ -116,6 +121,7 @@
     "cheer": {
       "enabled": true,
       "style": "cannon",
+      "target": "both",
       "duration": 7000,
       "title": "Bits",
       "message": "{name} cheered {bits} bits!",
@@ -131,6 +137,7 @@
     "raid": {
       "enabled": true,
       "style": "rainbow",
+      "target": "both",
       "duration": 8000,
       "title": "Raid",
       "message": "{name} raided with {viewers} viewers!",
@@ -146,6 +153,7 @@
     "firstchat": {
       "enabled": false,
       "style": "banner",
+      "target": "both",
       "duration": 6000,
       "title": "First Message",
       "message": "{name} is chatting for the first time!",

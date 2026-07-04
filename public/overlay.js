@@ -384,8 +384,12 @@ function connect() {
   ws.onmessage = (e) => {
     try {
       const data = JSON.parse(e.data);
-      if (data.kind === "alert") { queue.push(data); playNext(); }
-      else if (data.kind === "ttsSkip") stopSpeech();
+      if (data.kind === "alert") {
+        // Skip alerts routed to the widget only.
+        if (data.style && data.style.target === "widget") return;
+        queue.push(data);
+        playNext();
+      } else if (data.kind === "ttsSkip") stopSpeech();
     } catch { /* ignore */ }
   };
   ws.onclose = () => setTimeout(connect, 2000);

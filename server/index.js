@@ -335,8 +335,10 @@ function handleAlert(event, source = "twitch") {
   });
   if (!fired) return;
   const style = applyVariations(block, ev);
+  // `target` routes each alert: "both" (default), "widget" only, or "overlay"
+  // only. The modern overlay skips widget-only alerts client-side via style.target.
   broadcast({ kind: "alert", event: ev, style, styleKey, tts: config.tts });
-  feedWidget(ev); // drive the original widget overlay too
+  if (block.target !== "overlay") feedWidget(ev); // drive the original widget overlay
   bumpGoals(ev, source);
   hype.addSupport(ev); // build the combo/hype meter
   console.log(`[alert] ${ev.type} (${source}):`, ev.name);
